@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx expo install expo@~54.0.0 --fix)",
+      "Bash(npx expo install expo@~55.0.0 --fix)",
+      "Bash(npx tsc --noEmit)",
+      "WebFetch(domain:reactnativereusables.com)",
+      "Bash(npx @react-native-reusables/cli@latest init --help)",
+      "Bash(npx @react-native-reusables/cli@latest add --help)",
+      "Bash(npm install clsx tailwind-merge)",
+      "Bash(npx @react-native-reusables/cli@latest add button input text card label -y)",
+      "Bash(npx @react-native-reusables/cli@latest add -y button input text card label)",
+      "Bash(npm install class-variance-authority)",
+      "Bash(ls /c/Users/hp/Desktop/millionaire/quran-app/babel.config.*)"
+    ]
+  }
+}
