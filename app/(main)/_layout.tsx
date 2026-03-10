@@ -1,11 +1,15 @@
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { DrawerNavigatorContent } from '@/components/DrawerNavigator';
+import { Drawer } from 'expo-router/drawer';
 
 export default function MainLayout() {
   return (
     <>
       <AnimatedSplashOverlay />
-      <AppTabs />
+      <Drawer
+        screenOptions={{ headerShown: false }}
+        drawerContent={(props) => <DrawerNavigatorContent {...props} />}
+      />
     </>
   );
 }

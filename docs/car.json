@@ -1,0 +1,318 @@
+{
+    "loop": true,
+    "spacing": 20,
+    "perView": {
+        "desktop": 5,
+        "tablet": 3,
+        "mobile": 1
+    },
+    "imageMaxHeight": 300,
+    "items": [
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F1e920e4a4a5c408f8285f1898840cc4e"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2Fd3461274a8754044a8431a7dc5c5f182"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F75a2f65cba3c4cd284e5a1d19a0312b6"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F51c5e0143ad745a5819082e8bf0452b5"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2Fedb44e06d690480ebf1bad8ed254b57d"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F693839ef67544d249736c57c0d306e9a"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F693839ef67544d249736c57c0d306e9a"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F1e6c62f610b545719d9b840ae889cd3a"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F6f219f37dd6043858a0f484f0bc46b99"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F93a1fa303e08488f909cf515bc037234"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F36f7117090c64d36ad042696651162bd"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2Faa433e421dc747f5832bf071a0a6e09c"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F5e5f746e529442e488f2b15c9d329efc"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F3aac5814cfac41498c3d3c5fe0e0c0a0"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F421b91de8b9643bdbf2079e1210dfbd4"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F57a7fb98cb044df68b775a5dd32f2a98"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2Fa67bc8c0a6744ec8aacc3ebc94b6f069"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F10324c76d15649a480dd327230fc0fa8"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2Fa7be215605c14796a3fb8f20529d1596"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F6f779283b76d4749bac40e767ab82fdd"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F3cba4c3a3ac74ffa945d3947c2997c58"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F306562f4bc4b4e1fb8ebc95e759684fb"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F87a54e0638f94814a09a6b865906af67"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F627054f8706d4a7f82bc3db05a0e23d4"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F64d20b95614f490e828929e36d3a0d05"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F136c5230e34b4fef92a15aa83989052f"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F96ace026a6214ae881f324275f5bf8d3"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F17bace2469224cdeb6fe320ca5305435"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F6bda5e6a82764bb58f3a899a11263877"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2Fdfd69a04ae744ed487ba50fd82d1309e"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F039568d601d0403e98e2f9cbe69b933e"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F2314f8192177488cb1d4b365d1665784"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F3ad61535b36c4edaa27a86119c407893"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F6cf6b53422aa44be8dc8436719d444ea"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F5019493090b04820b6f263f62abdaa0d"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2Fbac973815c824a91bb300a71ea695dea"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F375a05963eae40698e4bd49cedb5d3b2"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F6a3a72ea269f4db29333f176036af36d"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2Ff549cbe26cf344e3ae3f0cfd09eb1011"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2Fbab2dbf9f8674ca49c8356f465d1303d"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2Fedd834ac514244e48cb4626a4bbda86a"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2Fc23c7cefe25e494d907d2a7fb39ca1ed"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2Fbbb3927d5f824613882a618635da56eb"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F25087c0bb1124b9fbd8267e73569ef1b"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F173417eab0604f15a8b3f41e1a90e788"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2Fd513930985fd4e09bfb1996ef3cfae98"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F3216e90165814be7a6dc462d2c96eb61"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F5a79f87bedb1439aa212331c9e2e462c"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F5d65a8cbbbba4436860059980a1578f9"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F7acfe6fb77544d6c80d7c8b989295a52"
+            }
+        },
+        {
+            "openInNewTab": false,
+            "img": {
+                "src": "https://cdn.builder.io/api/v1/image/assets%2F32b8c354d4bc455dbf10fed3923dfae1%2F9112a9ed85c543f7aa36cfd1aeee4fa5"
+            }
+        }
+    ]
+}

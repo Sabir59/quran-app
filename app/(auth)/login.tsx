@@ -1,68 +1,79 @@
-import { AppContainer } from '@/components/app-container';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { AuthFooter } from '@/components/ui-lib/auth/auth-footer';
+import { AuthHero } from '@/components/ui-lib/auth/auth-hero';
+import { LoginForm } from '@/components/ui-lib/auth/login-form';
+import { useLoginForm } from '@/hooks/use-login-form';
 import { Text } from '@/components/ui/text';
-import { Link, router } from 'expo-router';
-import { View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+const TEAL_COLOR = '#12C4BE';
 
 export default function LoginScreen() {
-  // TODO: wire up form state and useAuthMutation hook
-  function handleLogin() {
-    router.replace('/(main)/home');
-  }
+  const form = useLoginForm();
 
   return (
-    <AppContainer>
-      <View className="flex-1 justify-center gap-8">
+    <View style={styles.root}>
+      <SafeAreaView style={styles.safeTop} edges={['top', 'left', 'right']}>
+        <KeyboardAvoidingView
+          style={styles.keyboardView}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.scrollContent}
+            bounces={false}
+          >
+            {/* Hero — shared with Register */}
+            <AuthHero />
 
-        {/* Header */}
-        <View className="gap-2">
-          <Text variant="h2" className='text-red-500'>Welcome back</Text>
-          <Text variant="muted">Sign in to your account to continue</Text>
-        </View>
+            {/* Content */}
+            <View style={styles.content}>
+              <Text variant="h2" className="text-foreground font-bold">
+                Login
+              </Text>
+              <Text variant="muted" className="leading-5">
+                Start your day by reading the holy Quran verses.
+              </Text>
 
-        {/* Form */}
-        <View className="gap-5">
-          <View className="gap-1.5">
-            <Label nativeID="email">Email</Label>
-            <Input
-              aria-labelledby="email"
-              placeholder="you@example.com"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-            />
-          </View>
+              <LoginForm {...form} />
 
-          <View className="gap-1.5">
-            <Label nativeID="password">Password</Label>
-            <Input
-              aria-labelledby="password"
-              placeholder="••••••••"
-              secureTextEntry
-              autoComplete="password"
-            />
-          </View>
-        </View>
+              <AuthFooter />
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
 
-        {/* Actions */}
-        <View className="gap-4">
-          <Button onPress={handleLogin} className="w-full">
-            <Text>Sign in</Text>
-          </Button>
-
-          <View className="flex-row items-center justify-center gap-1">
-            <Text variant="muted">Don't have an account?</Text>
-            <Link href="/(auth)/signup" asChild>
-              <Button variant="link" size="sm">
-                <Text>Sign up</Text>
-              </Button>
-            </Link>
-          </View>
-        </View>
-
-      </View>
-    </AppContainer>
+      <SafeAreaView edges={['bottom']} style={styles.safeBottom} />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: TEAL_COLOR,
+  },
+  safeTop: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    backgroundColor: 'white',
+  },
+  content: {
+    flex: 1,
+    backgroundColor: 'white',
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 28,
+    gap: 20,
+  },
+  safeBottom: {
+    backgroundColor: 'white',
+  },
+});

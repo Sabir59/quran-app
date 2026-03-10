@@ -1,0 +1,152 @@
+Quran App – Phase 1 (Industry Standard – No AI Yet)
+
+A usable, production-ready Quran reader/listening app.
+
+✅ Core Product Features (Client Version)
+1️⃣ Quran Reading Experience
+
+Complete Quran (114 Surahs)
+
+Multiple Mushaf styles:
+
+IndoPak script
+
+Uthmani script
+
+Smooth scroll 
+
+Clean typography with proper Arabic rendering
+
+Adjustable font size
+
+Light & Dark mode
+
+Page-based and scroll-based  modes
+
+2️⃣ Surah & Juz Navigation
+
+Surah list (114 with metadata)
+
+Juz list
+
+Search Surah by name
+
+Resume last read position
+
+Jump to Ayah
+
+3️⃣ Ayah Interaction
+
+On tapping any Ayah:
+
+Play audio
+
+Select reciter
+
+View translation
+
+Copy Ayah
+
+Bookmark Ayah
+
+Share Ayah (Arabic + translation)
+
+Add note (optional but powerful)
+
+4️⃣ Audio System
+
+3–5 reciters (example: Al-Afasy, Sudais etc.)
+
+Play single ayah
+
+Play full Surah
+
+Pause / Resume
+
+Background audio support
+
+Auto-scroll with audio (optional but strong feature)
+
+This makes it feel premium.
+
+5️⃣ Bookmarks & Continue Reading
+
+Bookmark ayah
+
+View all bookmarks
+
+Remove bookmark
+
+“Continue where you left”
+
+Stored locally for now.
+
+6️⃣ Translation Support
+
+At least 1–2 translations:
+
+English
+
+Urdu
+
+Toggle translation visibility
+
+Translation font size control
+
+7️⃣ Share Verse as Image
+
+Generate shareable card
+
+Arabic + translation + Surah name
+
+Clean branded template
+
+Export as image
+
+Share to WhatsApp / Instagram
+
+8️⃣ Settings Screen
+
+Theme toggle (Light / Dark)
+
+Mushaf style selector
+
+Reciter selector
+
+Translation selector
+
+Font size adjustment
+
+Reset preferences
+
+Offline mode (download Surah audio)
+
+Highlight current ayah during playback
+
+Recently read Surahs
+
+Elegant splash & onboarding
+
+❌ Not Included Yet
+
+AI Tajweed correction
+
+Voice recognition grading
+
+AI memorisation assistant
+
+Cloud sync accounts
+
+Subscription system
+
+These are Phase 2 / Monetization Phase.
+
+
+NOTE:
+if am missing some features from phase 1 that they should be included or missed you are welcome to discuss.
+
+COST:
+2000 USD
+
+Timeline:
+25 days

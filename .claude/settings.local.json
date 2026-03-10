@@ -11,7 +11,10 @@
       "Bash(npx @react-native-reusables/cli@latest add button input text card label -y)",
       "Bash(npx @react-native-reusables/cli@latest add -y button input text card label)",
       "Bash(npm install class-variance-authority)",
-      "Bash(ls /c/Users/hp/Desktop/millionaire/quran-app/babel.config.*)"
+      "Bash(ls /c/Users/hp/Desktop/millionaire/quran-app/babel.config.*)",
+      "Bash(npx expo install expo-linear-gradient)",
+      "Bash(npx expo install @react-navigation/drawer)",
+      "Bash(ls -la c:/Users/hp/Desktop/millionaire/quran-app/app/\\\\\\(auth\\\\\\)/)"
     ]
   }
 }
