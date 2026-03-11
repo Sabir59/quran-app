@@ -37,11 +37,11 @@ export default function RootLayout() {
 // ─── Theme + guard wrapper ────────────────────────────────────────────────────
 
 function ThemedApp() {
-  const { colorScheme, setColorScheme } = useColorScheme();
+  const { setColorScheme } = useColorScheme();
   const { theme, ready } = useSettings();
-  const effective = theme === 'system' ? colorScheme : theme;
 
   // useLayoutEffect fires synchronously before paint — no flash between renders
+  // Only pass 'light'|'dark' — Android's AppearanceModule crashes on anything else
   useLayoutEffect(() => {
     setColorScheme(theme);
   }, [theme, setColorScheme]);
@@ -51,7 +51,7 @@ function ThemedApp() {
   if (!ready) return null;
 
   return (
-    <ThemeProvider value={effective === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
       <AuthGuard>
         <View style={styles.root}>
           <Stack screenOptions={{ headerShown: false }} />

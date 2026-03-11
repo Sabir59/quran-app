@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { MushafStyle } from '@/api/quran/quran';
 
-type ThemePref = 'system' | 'light' | 'dark';
+type ThemePref = 'light' | 'dark';
 
 type SettingsState = {
   mushaf: MushafStyle;
@@ -25,7 +25,7 @@ const DEFAULTS: Omit<SettingsState, 'setMushaf' | 'setReciter' | 'setTranslation
   translationEnabled: true,
   translationEdition: 'en.asad',
   fontScale: 1,
-  theme: 'system',
+  theme: 'light',
 };
 
 const STORAGE_KEY = '@quranapp:settings';

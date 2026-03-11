@@ -26,7 +26,7 @@ import { useSettings } from '@/lib/settings';
 const TEAL = '#12C4BE';
 const TEAL_LIGHT = '#ECFAF9';
 
-type ThemePref = 'system' | 'light' | 'dark';
+type ThemePref = 'light' | 'dark';
 
 // ─── Theme Segment ────────────────────────────────────────────────────────────
 
@@ -36,7 +36,6 @@ const THEME_OPTIONS: {
   icon: React.ComponentProps<typeof Ionicons>['name'];
 }[] = [
   { label: 'Light', value: 'light', icon: 'sunny-outline' },
-  { label: 'System', value: 'system', icon: 'phone-portrait-outline' },
   { label: 'Dark', value: 'dark', icon: 'moon-outline' },
 ];
 
