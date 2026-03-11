@@ -9,6 +9,7 @@ import { useColorScheme } from 'nativewind';
 
 import { AudioPlayerProvider } from '@/context/AudioPlayerContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { BookmarksProvider } from '@/context/BookmarksContext';
 import { MiniPlayer } from '@/components/player/MiniPlayer';
 import { SettingsProvider, useSettings } from '@/lib/settings';
 
@@ -22,9 +23,11 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <SettingsProvider>
         <AuthProvider>
-          <AudioPlayerProvider>
-            <ThemedApp />
-          </AudioPlayerProvider>
+          <BookmarksProvider>
+            <AudioPlayerProvider>
+              <ThemedApp />
+            </AudioPlayerProvider>
+          </BookmarksProvider>
         </AuthProvider>
       </SettingsProvider>
     </QueryClientProvider>

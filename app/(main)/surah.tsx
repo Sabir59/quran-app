@@ -19,7 +19,7 @@ import { PickerModal } from '@/components/surah/PickerModal';
 import { SurahHeroCard } from '@/components/surah/SurahHeroCard';
 import { HOME_COLORS } from '@/constants/home';
 import { useSurahDetail, useSurahList } from '@/hooks/api/quran';
-import { useBookmarks } from '@/hooks/useBookmarks';
+import { useBookmarks } from '@/context/BookmarksContext';
 import { useAudioPlayer } from '@/context/AudioPlayerContext';
 import type { PlayerTrack } from '@/context/AudioPlayerContext';
 
@@ -36,7 +36,7 @@ export default function SurahScreen() {
     translationEnabled: true,
   });
   const { data: surahList } = useSurahList();
-  const { bookmarks, addBookmark, removeBookmark } = useBookmarks();
+  const { isBookmarked: checkBookmarked, addBookmark, removeBookmark } = useBookmarks();
   const { loadAndPlay, playPause, currentTrack, isPlaying } = useAudioPlayer();
 
   const [currentAyah, setCurrentAyah] = useState(1);
@@ -64,26 +64,22 @@ export default function SurahScreen() {
     setCurrentAyah(ayahNum);
   }, []);
 
-  const isBookmarked = useCallback(
-    (ayahNum: number) =>
-      bookmarks.some(b => b.surahNumber === surahNumber && b.ayahNumber === ayahNum),
-    [bookmarks, surahNumber],
-  );
-
   const toggleBookmark = useCallback(
     async (ayah: AyahCombined) => {
-      if (isBookmarked(ayah.numberInSurah)) {
+      if (checkBookmarked(surahNumber, ayah.numberInSurah)) {
         await removeBookmark(surahNumber, ayah.numberInSurah);
       } else {
         await addBookmark({
           surahNumber,
+          surahName: data?.surah.englishName ?? name ?? '',
           ayahNumber: ayah.numberInSurah,
           arabic: ayah.arabic,
+          transliteration: ayah.transliteration,
           translation: ayah.translation,
         });
       }
     },
-    [isBookmarked, surahNumber, addBookmark, removeBookmark],
+    [checkBookmarked, surahNumber, addBookmark, removeBookmark],
   );
 
   // Build playlist from loaded ayahs (only those with audio)
@@ -128,14 +124,14 @@ export default function SurahScreen() {
         <AyahCard
           ayah={item}
           isLast={index === (data?.ayahs.length ?? 0) - 1}
-          bookmarked={isBookmarked(item.numberInSurah)}
+          bookmarked={checkBookmarked(surahNumber, item.numberInSurah)}
           isCurrentlyPlaying={isThisPlaying}
           onBookmark={() => toggleBookmark(item)}
           onPlay={() => handlePlayAyah(item)}
         />
       );
     },
-    [data?.ayahs.length, isBookmarked, toggleBookmark, currentTrack, surahNumber, isPlaying, handlePlayAyah],
+    [data?.ayahs.length, checkBookmarked, toggleBookmark, currentTrack, surahNumber, isPlaying, handlePlayAyah],
   );
 
   const surahPickerItems =

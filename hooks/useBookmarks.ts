@@ -1,23 +1,56 @@
-import { useEffect, useState, useCallback } from 'react';
-import { addBookmark as add, getBookmarks as load, removeBookmark as remove, Bookmark } from '@/lib/bookmarks';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  addBookmark as add,
+  clearAllBookmarks,
+  getBookmarks,
+  removeBookmark as remove,
+} from '@/lib/bookmarks';
+import type { Bookmark } from '@/lib/bookmarks';
 
 export function useBookmarks() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    load().then(setBookmarks);
+  const reload = useCallback(async () => {
+    const data = await getBookmarks();
+    setBookmarks(data);
   }, []);
 
-  const addBookmark = useCallback(async (b: Bookmark) => {
+  useEffect(() => {
+    getBookmarks()
+      .then(setBookmarks)
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const addBookmark = useCallback(async (b: Omit<Bookmark, 'savedAt'>) => {
     await add(b);
-    setBookmarks(await load());
+    setBookmarks(await getBookmarks());
   }, []);
 
   const removeBookmark = useCallback(async (surahNumber: number, ayahNumber: number) => {
     await remove(surahNumber, ayahNumber);
-    setBookmarks(await load());
+    setBookmarks(await getBookmarks());
   }, []);
 
-  return { bookmarks, addBookmark, removeBookmark, reload: async () => setBookmarks(await load()) };
-}
+  const clearAll = useCallback(async () => {
+    await clearAllBookmarks();
+    setBookmarks([]);
+  }, []);
 
+  /** O(1) check — avoids re-running on every render */
+  const isBookmarked = useCallback(
+    (surahNumber: number, ayahNumber: number) =>
+      bookmarks.some(b => b.surahNumber === surahNumber && b.ayahNumber === ayahNumber),
+    [bookmarks],
+  );
+
+  return {
+    bookmarks,
+    isLoading,
+    isBookmarked,
+    addBookmark,
+    removeBookmark,
+    clearAll,
+    reload,
+  };
+}
