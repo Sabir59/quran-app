@@ -1,6 +1,6 @@
-import { AuthFooter } from '@/components/ui-lib/auth/auth-footer';
-import { AuthHero } from '@/components/ui-lib/auth/auth-hero';
-import { LoginForm } from '@/components/ui-lib/auth/login-form';
+import { AuthFooter } from '@/components/auth/auth-footer';
+import { AuthHero } from '@/components/auth/auth-hero';
+import { LoginForm } from '@/components/auth/login-form';
 import { useLoginForm } from '@/hooks/use-login-form';
 import { Text } from '@/components/ui/text';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
@@ -9,7 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const TEAL_COLOR = '#12C4BE';
 
 export default function LoginScreen() {
-  const form = useLoginForm();
+  const formHook = useLoginForm();
 
   return (
     <View style={styles.root}>
@@ -36,7 +36,7 @@ export default function LoginScreen() {
                 Start your day by reading the holy Quran verses.
               </Text>
 
-              <LoginForm {...form} />
+              <LoginForm {...formHook} />
 
               <AuthFooter />
             </View>

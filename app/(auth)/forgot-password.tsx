@@ -1,6 +1,6 @@
-import { AuthFooter } from '@/components/ui-lib/auth/auth-footer';
-import { AuthHero } from '@/components/ui-lib/auth/auth-hero';
-import { ForgotPasswordForm } from '@/components/ui-lib/auth/forgot-password-form';
+import { AuthFooter } from '@/components/auth/auth-footer';
+import { AuthHero } from '@/components/auth/auth-hero';
+import { ForgotPasswordForm } from '@/components/auth/forgot-password-form';
 import { useForgotPasswordForm } from '@/hooks/use-forgot-password-form';
 import { Text } from '@/components/ui/text';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
@@ -9,7 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const TEAL_COLOR = '#12C4BE';
 
 export default function ForgotPasswordScreen() {
-  const form = useForgotPasswordForm();
+  const formHook = useForgotPasswordForm();
 
   return (
     <View style={styles.root}>
@@ -34,7 +34,7 @@ export default function ForgotPasswordScreen() {
                 Enter your email address and we'll send you a verification code to reset your password.
               </Text>
 
-              <ForgotPasswordForm {...form} />
+              <ForgotPasswordForm {...formHook} />
 
               <AuthFooter />
             </View>

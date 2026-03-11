@@ -1,70 +1,46 @@
 import { useState } from 'react';
-import type { LoginFormValues, LoginPayload } from '@/types/auth';
-
-// TODO: import { loginUser } from '@/api/user/auth';
-// TODO: import { router } from 'expo-router';
-
-const INITIAL_VALUES: LoginFormValues = {
-  email: '',
-  password: '',
-};
-
-function validate(values: LoginFormValues): string | null {
-  if (!values.email.trim()) return 'Email is required.';
-  if (!/\S+@\S+\.\S+/.test(values.email)) return 'Enter a valid email address.';
-  if (!values.password) return 'Password is required.';
-  return null;
-}
+import { router } from 'expo-router';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '@/context/AuthContext';
+import { loginSchema } from '@/schemas/auth.schemas';
+import type { LoginFormValues } from '@/schemas/auth.schemas';
 
 export function useLoginForm() {
-  const [values, setValues] = useState<LoginFormValues>(INITIAL_VALUES);
+  const { login, loginAsGuest } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [serverError, setServerError] = useState<string | null>(null);
 
-  function setValue<K extends keyof LoginFormValues>(key: K, value: string) {
-    setValues(prev => ({ ...prev, [key]: value }));
-    if (error) setError(null);
-  }
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+    mode: 'onTouched',
+  });
 
-  async function handleSubmit() {
-    const validationError = validate(values);
-    if (validationError) {
-      setError(validationError);
-      return;
+  const handleSubmit = form.handleSubmit(async (values) => {
+    setServerError(null);
+    const result = await login({
+      email: values.email.trim().toLowerCase(),
+      password: values.password,
+    });
+    if (result.success) {
+      router.replace('/(main)/home');
+    } else {
+      setServerError(result.error ?? 'Login failed. Please try again.');
     }
-
-    setError(null);
-    setIsLoading(true);
-
-    try {
-      const payload: LoginPayload = {
-        email: values.email.trim().toLowerCase(),
-        password: values.password,
-      };
-
-      // TODO: await loginUser(payload);
-      // TODO: router.replace('/(main)/home');
-      console.log('[useLoginForm] Payload ready for backend:', payload);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  });
 
   function handleGuestLogin() {
-    // TODO: router.replace('/(main)/home');
-    console.log('[useLoginForm] Guest login requested');
+    loginAsGuest();
+    router.replace('/(main)/home');
   }
 
   return {
-    values,
-    setValue,
+    form,
     showPassword,
     setShowPassword,
-    isLoading,
-    error,
+    serverError,
+    isLoading: form.formState.isSubmitting,
     handleSubmit,
     handleGuestLogin,
   };

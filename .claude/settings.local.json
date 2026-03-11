@@ -14,7 +14,10 @@
       "Bash(ls /c/Users/hp/Desktop/millionaire/quran-app/babel.config.*)",
       "Bash(npx expo install expo-linear-gradient)",
       "Bash(npx expo install @react-navigation/drawer)",
-      "Bash(ls -la c:/Users/hp/Desktop/millionaire/quran-app/app/\\\\\\(auth\\\\\\)/)"
+      "Bash(ls -la c:/Users/hp/Desktop/millionaire/quran-app/app/\\\\\\(auth\\\\\\)/)",
+      "Bash(node -e \"const p = require\\(''./package.json''\\); console.log\\(JSON.stringify\\(Object.keys\\({...p.dependencies,...p.devDependencies}\\), null, 2\\)\\)\")",
+      "Bash(node -e \":*)",
+      "Bash(npm install:*)"
     ]
   }
 }

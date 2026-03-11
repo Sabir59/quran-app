@@ -1,5 +1,5 @@
-import { AuthHero } from '@/components/ui-lib/auth/auth-hero';
-import { VerifyEmailForm } from '@/components/ui-lib/auth/verify-email-form';
+import { AuthHero } from '@/components/auth/auth-hero';
+import { VerifyEmailForm } from '@/components/auth/verify-email-form';
 import { useVerifyEmailForm } from '@/hooks/use-verify-email-form';
 import { Text } from '@/components/ui/text';
 import { useLocalSearchParams } from 'expo-router';
@@ -12,7 +12,7 @@ export default function VerifyEmailScreen() {
   // Email is passed as a route param from the forgot-password screen
   const { email = '' } = useLocalSearchParams<{ email: string }>();
 
-  const form = useVerifyEmailForm(email);
+  const formHook = useVerifyEmailForm(email);
 
   return (
     <View style={styles.root}>
@@ -34,7 +34,7 @@ export default function VerifyEmailScreen() {
                 Verify your email
               </Text>
 
-              <VerifyEmailForm email={email} {...form} />
+              <VerifyEmailForm email={email} {...formHook} />
             </View>
           </ScrollView>
         </KeyboardAvoidingView>

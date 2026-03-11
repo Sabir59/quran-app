@@ -1,17 +1,17 @@
 import { AntDesign, Feather } from '@expo/vector-icons';
 import { View } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { SocialIconButton } from './social-icon-button';
+import { SocialIconButton } from '@/components/ui-lib/social-icon-button';
 
 const TEAL_COLOR = '#12C4BE';
 const ICON_COLOR = '#9CA3AF';
 const ICON_SIZE = 22;
 
 const SOCIAL_LINKS = [
-  { key: 'linkedin', label: 'LinkedIn', icon: <AntDesign name="linkedin-square" size={ICON_SIZE} color={ICON_COLOR} /> },
-  { key: 'facebook', label: 'Facebook', icon: <Feather name="facebook" size={ICON_SIZE} color={ICON_COLOR} /> },
-  { key: 'instagram', label: 'Instagram', icon: <Feather name="instagram" size={ICON_SIZE} color={ICON_COLOR} /> },
-  { key: 'x', label: 'X', icon: <AntDesign name="twitter" size={ICON_SIZE} color={ICON_COLOR} /> },
+  { key: 'linkedin', label: 'LinkedIn', icon: <AntDesign name='linkedin-square' size={ICON_SIZE} color={ICON_COLOR} /> },
+  { key: 'facebook', label: 'Facebook', icon: <Feather name='facebook' size={ICON_SIZE} color={ICON_COLOR} /> },
+  { key: 'instagram', label: 'Instagram', icon: <Feather name='instagram' size={ICON_SIZE} color={ICON_COLOR} /> },
+  { key: 'x', label: 'X', icon: <AntDesign name='twitter' size={ICON_SIZE} color={ICON_COLOR} /> },
 ] as const;
 
 export function AuthFooter() {

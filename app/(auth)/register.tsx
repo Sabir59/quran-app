@@ -1,6 +1,6 @@
-import { AuthFooter } from '@/components/ui-lib/auth/auth-footer';
-import { AuthHero } from '@/components/ui-lib/auth/auth-hero';
-import { RegisterForm } from '@/components/ui-lib/auth/register-form';
+import { AuthFooter } from '@/components/auth/auth-footer';
+import { AuthHero } from '@/components/auth/auth-hero';
+import { RegisterForm } from '@/components/auth/register-form';
 import { useRegisterForm } from '@/hooks/use-register-form';
 import { Text } from '@/components/ui/text';
 import { Platform, KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
@@ -9,7 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const TEAL_COLOR = '#12C4BE';
 
 export default function RegisterScreen() {
-  const form = useRegisterForm();
+  const formHook = useRegisterForm();
 
   return (
     // Outer View sets teal bg so the status-bar area matches the hero
@@ -39,7 +39,7 @@ export default function RegisterScreen() {
               </Text>
 
               {/* Form */}
-              <RegisterForm {...form} />
+              <RegisterForm {...formHook} />
 
               {/* Footer */}
               <AuthFooter />
