@@ -1,6 +1,6 @@
 import '@/global.css';
 
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -37,9 +37,18 @@ export default function RootLayout() {
 // ─── Theme + guard wrapper ────────────────────────────────────────────────────
 
 function ThemedApp() {
-  const { colorScheme } = useColorScheme();
-  const { theme } = useSettings();
+  const { colorScheme, setColorScheme } = useColorScheme();
+  const { theme, ready } = useSettings();
   const effective = theme === 'system' ? colorScheme : theme;
+
+  // useLayoutEffect fires synchronously before paint — no flash between renders
+  useLayoutEffect(() => {
+    setColorScheme(theme);
+  }, [theme, setColorScheme]);
+
+  // Hold rendering until stored settings are loaded so the correct theme
+  // is applied from the very first frame — no startup flash.
+  if (!ready) return null;
 
   return (
     <ThemeProvider value={effective === 'dark' ? DarkTheme : DefaultTheme}>

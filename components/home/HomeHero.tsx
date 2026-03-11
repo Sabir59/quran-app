@@ -1,5 +1,4 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { HOME_COLORS } from '@/constants/home';
 
 interface HomeHeroProps {
   userInitials?: string;
@@ -9,14 +8,6 @@ interface HomeHeroProps {
 export function HomeHero({ userInitials = 'AY', onAvatarPress }: HomeHeroProps) {
   return (
     <View style={styles.container}>
-      {/* Decorative Quran image — right side, subtle */}
-      <Image
-        source={require('@/assets/images/bg-auth.png')}
-        style={styles.bgDecor}
-        resizeMode="contain"
-      />
-
-      {/* Top bar: logo left, avatar right */}
       <View style={styles.topBar}>
         <Image
           source={require('@/assets/images/logo-al-quran.png')}
@@ -43,14 +34,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 16,
-  },
-  bgDecor: {
-    position: 'absolute',
-    right: -16,
-    top: -8,
-    width: 170,
-    height: 170,
-    opacity: 0.18,
   },
   topBar: {
     flexDirection: 'row',

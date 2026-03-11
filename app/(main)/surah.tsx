@@ -223,7 +223,7 @@ export default function SurahScreen() {
         )}
       </View>
 
-      <SafeAreaView edges={['bottom']} style={styles.safeBottom} />
+      <SafeAreaView edges={['bottom']} className="bg-background" />
 
       {/* Surah switcher */}
       <PickerModal

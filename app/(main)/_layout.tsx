@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 import { Platform, View } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
@@ -37,6 +38,14 @@ function BookmarkTabIcon({ focused }: { focused: boolean }) {
 }
 
 export default function MainLayout() {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  // Tab bar background and border must be computed imperatively —
+  // tabBarStyle is a plain object, className does not apply to it.
+  const tabBarBg = isDark ? '#0a0a0f' : 'white';          // matches --background
+  const tabBarBorder = isDark ? '#252628' : '#F3F4F6';    // matches --border
+
   return (
     <>
       <AnimatedSplashOverlay />
@@ -46,9 +55,9 @@ export default function MainLayout() {
           tabBarActiveTintColor: TEAL,
           tabBarInactiveTintColor: INACTIVE,
           tabBarStyle: {
-            backgroundColor: 'white',
+            backgroundColor: tabBarBg,
             borderTopWidth: 1,
-            borderTopColor: '#F3F4F6',
+            borderTopColor: tabBarBorder,
             height: Platform.OS === 'ios' ? 88 : 64,
             paddingBottom: Platform.OS === 'ios' ? 28 : 10,
             paddingTop: 8,
@@ -82,23 +91,18 @@ export default function MainLayout() {
           }}
         />
         <Tabs.Screen
-          name="explore"
+          name="profile"
           options={{
-            title: 'Explore',
+            title: 'Profile',
             tabBarIcon: ({ focused }) => (
-              <TabIcon name={focused ? 'compass' : 'compass-outline'} focused={focused} />
+              <TabIcon name={focused ? 'person' : 'person-outline'} focused={focused} />
             ),
           }}
         />
-        <Tabs.Screen
-          name="quran"
-          options={{
-            title: 'Progress',
-            tabBarIcon: ({ focused }) => (
-              <TabIcon name={focused ? 'stats-chart' : 'stats-chart-outline'} focused={focused} />
-            ),
-          }}
-        />
+
+        {/* Hidden from tab bar — accessible but not yet designed */}
+        <Tabs.Screen name="explore" options={{ href: null }} />
+        <Tabs.Screen name="quran" options={{ href: null }} />
 
         {/* Detail screen — hidden from tab bar, pushed on top */}
         <Tabs.Screen

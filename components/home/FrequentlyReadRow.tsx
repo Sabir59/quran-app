@@ -1,5 +1,7 @@
+import { useColorScheme } from 'nativewind';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { SurahSummary } from '@/api/quran/quran';
+import { HOME_COLORS } from '@/constants/home';
 
 interface FrequentlyReadRowProps {
   surahs: SurahSummary[];
@@ -7,11 +9,17 @@ interface FrequentlyReadRowProps {
 }
 
 export function FrequentlyReadRow({ surahs, onPress }: FrequentlyReadRowProps) {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const titleColor = isDark ? '#9CA3AF' : 'white';
+  const chipBg = isDark ? '#1F2937' : 'rgba(255,255,255,0.9)';
+  const chipText = isDark ? HOME_COLORS.teal : HOME_COLORS.teal;
+
   if (surahs.length === 0) return null;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Frequently Read</Text>
+      <Text style={[styles.title, { color: titleColor }]}>Frequently Read</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -22,11 +30,11 @@ export function FrequentlyReadRow({ surahs, onPress }: FrequentlyReadRowProps) {
           <Pressable
             key={s.number}
             onPress={() => onPress(s.number)}
-            style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}
+            style={({ pressed }) => [styles.chip, { backgroundColor: chipBg }, pressed && styles.chipPressed]}
             accessibilityRole="button"
             accessibilityLabel={`Open ${s.englishName}`}
           >
-            <Text style={styles.chipText}>{s.englishName}</Text>
+            <Text style={[styles.chipText, { color: chipText }]}>{s.englishName}</Text>
           </Pressable>
         ))}
       </ScrollView>
@@ -43,7 +51,6 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
   },
   title: {
-    color: 'white',
     fontSize: 13,
     fontWeight: '600',
     marginRight: 10,
@@ -54,7 +61,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   chip: {
-    backgroundColor: 'rgba(255,255,255,0.9)',
     borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 7,
@@ -63,7 +69,6 @@ const styles = StyleSheet.create({
     opacity: 0.75,
   },
   chipText: {
-    color: '#12C4BE',
     fontSize: 13,
     fontWeight: '600',
   },

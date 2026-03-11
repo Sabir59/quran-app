@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 
 import type { SurahSummary } from '@/api/quran/quran';
 import { FrequentlyReadRow } from '@/components/home/FrequentlyReadRow';
@@ -119,6 +120,10 @@ const emptyStyles = StyleSheet.create({
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 export default function HomeScreen() {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const headerBg = isDark ? '#0a0a0f' : HOME_COLORS.teal;
+
   const { data: surahs, isLoading, isError, refetch } = useSurahList();
   const { query, setQuery, results, isSearching } = useHomeSearch(surahs);
   const { frequentSurahs, trackRead } = useFrequentlyRead(surahs ?? []);
@@ -201,7 +206,7 @@ export default function HomeScreen() {
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       {/* Teal outer shell — bleeds behind the status bar */}
-      <View style={styles.root}>
+      <View style={[styles.root, { backgroundColor: headerBg }]}>
         <SafeAreaView style={styles.safeTop} edges={['top', 'left', 'right']}>
 
           {/* ── Fixed teal header ──────────────────────────────────── */}
@@ -215,8 +220,8 @@ export default function HomeScreen() {
 
         </SafeAreaView>
 
-        {/* ── White content sheet — overlaps teal by 20px ─────────── */}
-        <View style={styles.contentSheet}>
+        {/* ── Content sheet — bg-background adapts to dark mode ── */}
+        <View className="flex-1 bg-background rounded-t-[28px]" style={styles.contentSheetLayout}>
           <FlatList
             data={listData}
             keyExtractor={keyExtractor}
@@ -249,8 +254,7 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Bottom safe area — white to match the list */}
-      <SafeAreaView edges={['bottom']} style={styles.safeBottom} />
+      <SafeAreaView edges={['bottom']} className="bg-background" />
 
       {/* Filter / Sort modal */}
       <FilterSortModal
@@ -269,23 +273,16 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: HOME_COLORS.teal,
   },
   safeTop: {
     backgroundColor: 'transparent',
   },
-  contentSheet: {
-    flex: 1,
-    backgroundColor: 'white',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    // marginTop: -20,
+  // Layout-only — color is handled by className bg-background
+  contentSheetLayout: {
+    overflow: 'hidden',
   },
   listContent: {
     flexGrow: 1,
     paddingTop: 4,
-  },
-  safeBottom: {
-    backgroundColor: 'white',
   },
 });

@@ -1,5 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { memo } from 'react';
+import { useColorScheme } from 'nativewind';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { SurahSummary } from '@/api/quran/quran';
 import { HOME_COLORS, REVELATION_DISPLAY } from '@/constants/home';
@@ -10,66 +11,61 @@ interface SurahCardProps {
 }
 
 export const SurahCard = memo(function SurahCard({ surah, onPress }: SurahCardProps) {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const revelation = REVELATION_DISPLAY[surah.revelationType] ?? surah.revelationType;
+  const chipBg = isDark ? 'rgba(168,85,247,0.15)' : HOME_COLORS.chipBg;
 
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      style={({ pressed }) => [styles.layout, pressed && styles.pressed]}
+      className="bg-card mx-4 mb-[10px] rounded-[14px]"
       accessibilityRole="button"
       accessibilityLabel={`${surah.englishName}, surah ${surah.number}`}
     >
-      {/* Left: numbered octagram badge */}
+      {/* Numbered octagram badge */}
       <View style={styles.badge}>
-        <MaterialCommunityIcons
-          name="octagram-outline"
-          size={44}
-          color={HOME_COLORS.surahBadge}
-        />
+        <MaterialCommunityIcons name="octagram-outline" size={44} color={HOME_COLORS.surahBadge} />
         <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
-          <View style={styles.badgeInner}>
-            <Text style={styles.badgeNumber}>{surah.number}</Text>
+          <View style={styles.badgeCenter}>
+            <Text className="text-[11px] font-extrabold text-foreground">{surah.number}</Text>
           </View>
         </View>
       </View>
 
-      {/* Center: name + translation + chips */}
+      {/* Name + chips */}
       <View style={styles.center}>
         <View style={styles.nameRow}>
-          <Text style={styles.name} numberOfLines={1}>
+          <Text className="text-[14px] font-bold text-foreground" numberOfLines={1}>
             {surah.englishName}
           </Text>
-          <Text style={styles.translation} numberOfLines={1}>
+          <Text className="text-[12px] italic text-muted-foreground" numberOfLines={1}>
             {' '}({surah.englishNameTranslation})
           </Text>
         </View>
-
         <View style={styles.chips}>
-          <View style={styles.chip}>
+          <View style={[styles.chip, { backgroundColor: chipBg }]}>
             <Ionicons name="location-outline" size={11} color={HOME_COLORS.chipIcon} />
-            <Text style={styles.chipText}>{revelation}</Text>
+            <Text className="text-[10px] font-medium text-muted-foreground">{revelation}</Text>
           </View>
-          <View style={styles.chip}>
+          <View style={[styles.chip, { backgroundColor: chipBg }]}>
             <Ionicons name="document-text-outline" size={11} color={HOME_COLORS.chipIcon} />
-            <Text style={styles.chipText}>{surah.numberOfAyahs} Ayat</Text>
+            <Text className="text-[10px] font-medium text-muted-foreground">{surah.numberOfAyahs} Ayat</Text>
           </View>
         </View>
       </View>
 
-      {/* Right: Arabic name */}
-      <Text style={styles.arabic}>{surah.name}</Text>
+      {/* Arabic name */}
+      <Text className="text-[18px] text-foreground ml-2 text-right">{surah.name}</Text>
     </Pressable>
   );
 });
 
 const styles = StyleSheet.create({
-  card: {
+  layout: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
-    marginHorizontal: 16,
-    marginBottom: 10,
-    borderRadius: 14,
     padding: 14,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -77,67 +73,11 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  cardPressed: {
-    opacity: 0.85,
-  },
-  badge: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-  },
-  badgeInner: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeNumber: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#374151',
-  },
-  center: {
-    flex: 1,
-    gap: 6,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'baseline',
-  },
-  name: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  translation: {
-    fontSize: 12,
-    color: HOME_COLORS.cardSubtitle,
-    fontStyle: 'italic',
-  },
-  chips: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    backgroundColor: HOME_COLORS.chipBg,
-    borderRadius: 10,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-  },
-  chipText: {
-    fontSize: 10,
-    color: HOME_COLORS.chipText,
-    fontWeight: '500',
-  },
-  arabic: {
-    fontSize: 18,
-    color: '#111827',
-    marginLeft: 8,
-    textAlign: 'right',
-  },
+  pressed: { opacity: 0.85 },
+  badge: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  badgeCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  center: { flex: 1, gap: 6 },
+  nameRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline' },
+  chips: { flexDirection: 'row', gap: 6 },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 3, borderRadius: 10, paddingHorizontal: 7, paddingVertical: 3 },
 });

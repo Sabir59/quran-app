@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useColorScheme } from 'nativewind';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { HOME_COLORS } from '@/constants/home';
 
@@ -9,14 +10,20 @@ interface SearchBarProps {
 }
 
 export function SearchBar({ value, onChangeText, onClear }: SearchBarProps) {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const bg = isDark ? '#1F2937' : 'white';
+  const textColor = isDark ? '#F9FAFB' : '#111827';
+  const placeholderColor = isDark ? '#6B7280' : '#9CA3AF';
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: bg }]}>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: textColor }]}
         value={value}
         onChangeText={onChangeText}
         placeholder="Pencarian surah dalam Alquran..."
-        placeholderTextColor="#9CA3AF"
+        placeholderTextColor={placeholderColor}
         returnKeyType="search"
         autoCorrect={false}
         autoCapitalize="none"
@@ -32,7 +39,7 @@ export function SearchBar({ value, onChangeText, onClear }: SearchBarProps) {
           accessibilityRole="button"
           accessibilityLabel="Clear search"
         >
-          <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+          <Ionicons name="close-circle" size={20} color={placeholderColor} />
         </Pressable>
       ) : (
         <View style={styles.iconWrap}>
@@ -47,7 +54,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
     borderRadius: 14,
     paddingHorizontal: 16,
     height: 48,
@@ -61,7 +67,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 14,
-    color: '#111827',
     height: '100%',
   },
   iconWrap: {

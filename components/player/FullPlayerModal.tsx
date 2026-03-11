@@ -11,14 +11,12 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useColorScheme } from 'nativewind';
 import { HOME_COLORS } from '@/constants/home';
 import { SPEED_OPTIONS, useAudioPlayer } from '@/context/AudioPlayerContext';
 import type { PlaybackSpeed } from '@/context/AudioPlayerContext';
 
 // ─── KaraokeText ─────────────────────────────────────────────────────────────
-// Splits Arabic text into words and highlights the active word
-// based on proportional position. NOT phonetically precise — uses
-// equal-time interpolation across all words.
 
 interface KaraokeTextProps {
   arabic: string;
@@ -27,18 +25,19 @@ interface KaraokeTextProps {
 }
 
 function KaraokeText({ arabic, position, duration }: KaraokeTextProps) {
-  const words = useMemo(() => arabic.split(/\s+/).filter(Boolean), [arabic]);
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
+  const words = useMemo(() => arabic.split(/\s+/).filter(Boolean), [arabic]);
   const progress = duration > 0 ? position / duration : 0;
-  // Clamp to valid range; show last word until audio ends
-  const activeIndex = Math.min(
-    Math.floor(progress * words.length),
-    words.length - 1,
-  );
+  const activeIndex = Math.min(Math.floor(progress * words.length), words.length - 1);
+
+  // Future word color adapts to background
+  const dimColor = isDark ? '#4B5563' : '#D1D5DB';
+  const pastColor = isDark ? '#6B7280' : '#9CA3AF';
 
   return (
-    // Outer Text handles RTL flow — all inline child Texts inherit it
-    <Text style={karaokeStyles.container} textBreakStrategy="simple">
+    <Text style={styles.karaokeContainer} textBreakStrategy="simple">
       {words.map((word, idx) => {
         const isPast = idx < activeIndex;
         const isActive = idx === activeIndex;
@@ -46,9 +45,9 @@ function KaraokeText({ arabic, position, duration }: KaraokeTextProps) {
           <Text
             key={idx}
             style={[
-              karaokeStyles.word,
-              isPast && karaokeStyles.wordPast,
-              isActive && karaokeStyles.wordActive,
+              { color: dimColor },
+              isPast && { color: pastColor },
+              isActive && { color: HOME_COLORS.teal, fontWeight: '700' },
             ]}
           >
             {word}
@@ -60,54 +59,23 @@ function KaraokeText({ arabic, position, duration }: KaraokeTextProps) {
   );
 }
 
-const karaokeStyles = StyleSheet.create({
-  container: {
-    fontSize: 26,
-    textAlign: 'center',
-    lineHeight: 56,
-    writingDirection: 'rtl',
-    color: '#D1D5DB', // future words — dimmed
-  },
-  word: {
-    color: '#D1D5DB',
-    fontWeight: '400',
-  },
-  wordPast: {
-    color: '#9CA3AF',
-  },
-  wordActive: {
-    color: HOME_COLORS.teal,
-    fontWeight: '700',
-  },
-});
-
 // ─── FullPlayerModal ──────────────────────────────────────────────────────────
 
 interface FullPlayerModalProps {
   visible: boolean;
   onDismiss: () => void;
-  karaoke?: boolean; // toggle word-by-word highlight; default false
+  karaoke?: boolean;
 }
 
 export function FullPlayerModal({ visible, onDismiss, karaoke = false }: FullPlayerModalProps) {
   const {
-    currentTrack,
-    playlist,
-    currentIndex,
-    isPlaying,
-    isLoading,
-    position,
-    duration,
-    speed,
-    playPause,
-    next,
-    previous,
-    seekTo,
-    seekRelative,
-    stop,
-    setSpeed,
+    currentTrack, playlist, currentIndex, isPlaying, isLoading,
+    position, duration, speed, playPause, next, previous,
+    seekTo, seekRelative, stop, setSpeed,
   } = useAudioPlayer();
   const insets = useSafeAreaInsets();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const slideAnim = useRef(new Animated.Value(0)).current;
   const [barWidth, setBarWidth] = useState(0);
 
@@ -119,10 +87,7 @@ export function FullPlayerModal({ visible, onDismiss, karaoke = false }: FullPla
     }).start();
   }, [visible, slideAnim]);
 
-  const translateY = slideAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [700, 0],
-  });
+  const translateY = slideAnim.interpolate({ inputRange: [0, 1], outputRange: [700, 0] });
 
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex < playlist.length - 1;
@@ -146,6 +111,16 @@ export function FullPlayerModal({ visible, onDismiss, karaoke = false }: FullPla
 
   if (!currentTrack) return null;
 
+  // Computed theme values — Animated.View doesn't support className
+  const sheetBg = isDark ? '#0a0a0f' : 'white';  // matches --card in global.css
+  const handleColor = isDark ? '#374151' : '#D1D5DB';
+  const iconColor = isDark ? '#9CA3AF' : '#6B7280';
+  const controlIconColor = isDark ? '#E5E7EB' : '#374151';
+  const disabledColor = isDark ? '#374151' : '#D1D5DB';
+  const progressTrackBg = isDark ? '#252628' : '#E5E7EB';
+  const speedBtnBg = isDark ? '#1F2937' : '#F9FAFB';
+  const speedBtnBorder = isDark ? '#374151' : '#E5E7EB';
+
   return (
     <Modal
       visible={visible}
@@ -154,57 +129,52 @@ export function FullPlayerModal({ visible, onDismiss, karaoke = false }: FullPla
       onRequestClose={onDismiss}
       statusBarTranslucent
     >
-      {/* Backdrop */}
       <TouchableWithoutFeedback onPress={onDismiss}>
         <View style={styles.backdrop} />
       </TouchableWithoutFeedback>
 
+      {/* Sheet — bg-card adapts to dark mode */}
       <Animated.View
         style={[
-          styles.sheet,
-          { paddingBottom: insets.bottom + 16 },
+          styles.sheetLayout,
+          { backgroundColor: sheetBg, paddingBottom: insets.bottom + 16 },
           { transform: [{ translateY }] },
         ]}
       >
         {/* Handle */}
-        <View style={styles.handle} />
+        <View style={[styles.handle, { backgroundColor: handleColor }]} />
 
-        {/* Header row */}
+        {/* Header */}
         <View style={styles.headerRow}>
           <Pressable onPress={onDismiss} hitSlop={8}>
-            <Ionicons name="chevron-down" size={24} color="#6B7280" />
+            <Ionicons name="chevron-down" size={24} color={iconColor} />
           </Pressable>
           <View style={styles.headerCenter}>
-            <Text style={styles.headerSurah}>{currentTrack.surahName}</Text>
-            <Text style={styles.headerAyah}>
+            <Text className="text-[16px] font-bold text-foreground">{currentTrack.surahName}</Text>
+            <Text style={[styles.headerAyah, { color: HOME_COLORS.teal }]}>
               Ayah {currentTrack.ayahNumber} / {playlist.length}
             </Text>
           </View>
           <Pressable
-            onPress={async () => {
-              await stop();
-              onDismiss();
-            }}
+            onPress={async () => { await stop(); onDismiss(); }}
             hitSlop={8}
           >
-            <Ionicons name="close-circle-outline" size={24} color="#6B7280" />
+            <Ionicons name="close-circle-outline" size={24} color={iconColor} />
           </Pressable>
         </View>
 
-        {/* Arabic text — karaoke or plain */}
+        {/* Arabic / Karaoke */}
         <ScrollView
           style={styles.arabicScroll}
           contentContainerStyle={styles.arabicContent}
           showsVerticalScrollIndicator={false}
         >
           {karaoke ? (
-            <KaraokeText
-              arabic={currentTrack.arabic}
-              position={position}
-              duration={duration}
-            />
+            <KaraokeText arabic={currentTrack.arabic} position={position} duration={duration} />
           ) : (
-            <Text style={styles.arabic}>{currentTrack.arabic}</Text>
+            <Text className="text-[26px] text-foreground text-center" style={styles.arabicLine}>
+              {currentTrack.arabic}
+            </Text>
           )}
         </ScrollView>
 
@@ -213,40 +183,44 @@ export function FullPlayerModal({ visible, onDismiss, karaoke = false }: FullPla
           <Pressable
             onPress={handleProgressPress}
             onLayout={e => setBarWidth(e.nativeEvent.layout.width)}
-            style={styles.progressTrack}
+            style={[styles.progressTrack, { backgroundColor: progressTrackBg }]}
           >
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${Math.min(progress * 100, 100)}%` },
-              ]}
-            />
-            <View
-              style={[
-                styles.progressThumb,
-                { left: `${Math.min(progress * 100, 100)}%` },
-              ]}
-            />
+            <View style={[styles.progressFill, { width: `${Math.min(progress * 100, 100)}%` }]} />
+            <View style={[styles.progressThumb, { left: `${Math.min(progress * 100, 100)}%` }]} />
           </Pressable>
           <View style={styles.timeRow}>
-            <Text style={styles.timeText}>{fmt(position)}</Text>
-            <Text style={styles.timeText}>{fmt(duration)}</Text>
+            <Text className="text-[11px] font-medium text-muted-foreground">{fmt(position)}</Text>
+            <Text className="text-[11px] font-medium text-muted-foreground">{fmt(duration)}</Text>
           </View>
         </View>
 
         {/* Speed selector */}
         <View style={styles.speedRow}>
-          {SPEED_OPTIONS.map(s => (
-            <Pressable
-              key={s}
-              onPress={() => setSpeed(s)}
-              style={[styles.speedBtn, speed === s && styles.speedBtnActive]}
-            >
-              <Text style={[styles.speedText, speed === s && styles.speedTextActive]}>
-                {s}x
-              </Text>
-            </Pressable>
-          ))}
+          {SPEED_OPTIONS.map(s => {
+            const active = speed === s;
+            return (
+              <Pressable
+                key={s}
+                onPress={() => setSpeed(s)}
+                style={[
+                  styles.speedBtn,
+                  {
+                    borderColor: active ? HOME_COLORS.teal : speedBtnBorder,
+                    backgroundColor: active ? '#E6F9F8' : speedBtnBg,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.speedText,
+                    { color: active ? HOME_COLORS.teal : (isDark ? '#9CA3AF' : '#6B7280') },
+                  ]}
+                >
+                  {s}x
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
 
         {/* Controls */}
@@ -257,12 +231,12 @@ export function FullPlayerModal({ visible, onDismiss, karaoke = false }: FullPla
             style={[styles.sideBtn, !hasPrevious && styles.disabledBtn]}
             disabled={!hasPrevious}
           >
-            <Ionicons name="play-skip-back" size={26} color={hasPrevious ? '#374151' : '#D1D5DB'} />
+            <Ionicons name="play-skip-back" size={26} color={hasPrevious ? controlIconColor : disabledColor} />
           </Pressable>
 
           <Pressable onPress={() => seekRelative(-10000)} hitSlop={8} style={styles.sideBtn}>
-            <Ionicons name="play-back" size={24} color="#374151" />
-            <Text style={styles.seekLabel}>10</Text>
+            <Ionicons name="play-back" size={24} color={controlIconColor} />
+            <Text style={[styles.seekLabel, { color: controlIconColor }]}>10</Text>
           </Pressable>
 
           <Pressable onPress={playPause} style={styles.playBtn}>
@@ -274,8 +248,8 @@ export function FullPlayerModal({ visible, onDismiss, karaoke = false }: FullPla
           </Pressable>
 
           <Pressable onPress={() => seekRelative(10000)} hitSlop={8} style={styles.sideBtn}>
-            <Ionicons name="play-forward" size={24} color="#374151" />
-            <Text style={styles.seekLabel}>10</Text>
+            <Ionicons name="play-forward" size={24} color={controlIconColor} />
+            <Text style={[styles.seekLabel, { color: controlIconColor }]}>10</Text>
           </Pressable>
 
           <Pressable
@@ -284,7 +258,7 @@ export function FullPlayerModal({ visible, onDismiss, karaoke = false }: FullPla
             style={[styles.sideBtn, !hasNext && styles.disabledBtn]}
             disabled={!hasNext}
           >
-            <Ionicons name="play-skip-forward" size={26} color={hasNext ? '#374151' : '#D1D5DB'} />
+            <Ionicons name="play-skip-forward" size={26} color={hasNext ? controlIconColor : disabledColor} />
           </Pressable>
         </View>
       </Animated.View>
@@ -297,12 +271,11 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
-  sheet: {
+  sheetLayout: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'white',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingTop: 12,
@@ -313,7 +286,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#D1D5DB',
     alignSelf: 'center',
     marginBottom: 16,
   },
@@ -323,58 +295,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 20,
   },
-  headerCenter: {
-    alignItems: 'center',
-    flex: 1,
-    gap: 2,
-  },
-  headerSurah: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  headerAyah: {
-    fontSize: 12,
-    color: HOME_COLORS.teal,
-    fontWeight: '600',
-  },
-  arabicScroll: {
-    maxHeight: 200,
-  },
-  arabicContent: {
-    alignItems: 'center',
-    paddingBottom: 8,
-    gap: 10,
-  },
-  arabic: {
+  headerCenter: { alignItems: 'center', flex: 1, gap: 2 },
+  headerAyah: { fontSize: 12, fontWeight: '600' },
+  arabicScroll: { maxHeight: 200 },
+  arabicContent: { alignItems: 'center', paddingBottom: 8, gap: 10 },
+  arabicLine: { lineHeight: 52, writingDirection: 'rtl' },
+  karaokeContainer: {
     fontSize: 26,
-    color: '#111827',
     textAlign: 'center',
-    lineHeight: 52,
+    lineHeight: 56,
     writingDirection: 'rtl',
   },
-  transliteration: {
-    fontSize: 13,
-    color: HOME_COLORS.teal,
-    fontStyle: 'italic',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  progressSection: {
-    marginTop: 24,
-    gap: 6,
-  },
-  progressTrack: {
-    height: 5,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
-    overflow: 'visible',
-  },
-  progressFill: {
-    height: 5,
-    backgroundColor: HOME_COLORS.teal,
-    borderRadius: 4,
-  },
+  progressSection: { marginTop: 24, gap: 6 },
+  progressTrack: { height: 5, borderRadius: 4, overflow: 'visible' },
+  progressFill: { height: 5, backgroundColor: HOME_COLORS.teal, borderRadius: 4 },
   progressThumb: {
     position: 'absolute',
     top: -5,
@@ -384,41 +318,10 @@ const styles = StyleSheet.create({
     backgroundColor: HOME_COLORS.teal,
     marginLeft: -7,
   },
-  timeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  timeText: {
-    fontSize: 11,
-    color: '#9CA3AF',
-    fontWeight: '500',
-  },
-  speedRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 20,
-  },
-  speedBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-    backgroundColor: '#F9FAFB',
-  },
-  speedBtnActive: {
-    borderColor: HOME_COLORS.teal,
-    backgroundColor: '#E6F9F8',
-  },
-  speedText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  speedTextActive: {
-    color: HOME_COLORS.teal,
-  },
+  timeRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  speedRow: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: 20 },
+  speedBtn: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, borderWidth: 1.5 },
+  speedText: { fontSize: 13, fontWeight: '600' },
   controlsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -426,22 +329,9 @@ const styles = StyleSheet.create({
     gap: 12,
     marginTop: 24,
   },
-  sideBtn: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 44,
-    height: 44,
-  },
-  seekLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#374151',
-    position: 'absolute',
-    bottom: 5,
-  },
-  disabledBtn: {
-    opacity: 0.35,
-  },
+  sideBtn: { alignItems: 'center', justifyContent: 'center', width: 44, height: 44 },
+  seekLabel: { fontSize: 9, fontWeight: '700', position: 'absolute', bottom: 5 },
+  disabledBtn: { opacity: 0.35 },
   playBtn: {
     width: 64,
     height: 64,

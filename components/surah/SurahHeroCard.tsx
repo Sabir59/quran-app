@@ -1,4 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useColorScheme } from 'nativewind';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { SurahSummary } from '@/api/quran/quran';
 import { HOME_COLORS, REVELATION_DISPLAY } from '@/constants/home';
@@ -14,74 +15,81 @@ export function SurahHeroCard({
   onSurahDropdownPress,
   onAyatDropdownPress,
 }: SurahHeroCardProps) {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   const revelation = REVELATION_DISPLAY[surah.revelationType] ?? surah.revelationType;
   const showBismillah = surah.number !== 9;
 
+  // Teal-tinted chip — adapted for dark mode
+  const chipBg = isDark ? 'rgba(18,196,190,0.12)' : '#F0FFFE';
+  const chipBorder = isDark ? 'rgba(18,196,190,0.25)' : '#CCFAF8';
+  const borderColor = isDark ? '#252628' : '#E5E7EB';
+
   return (
-    <View style={styles.container}>
+    <View className="bg-background" style={styles.container}>
       {/* Arabic name */}
-      <Text style={styles.arabicName}>{surah.name}</Text>
+      <Text className="text-[32px] text-foreground text-center mb-[6px]">{surah.name}</Text>
 
       {/* English name + translation */}
-      <Text style={styles.englishRow}>
-        <Text style={styles.englishName}>{surah.englishName} </Text>
-        <Text style={styles.englishTranslation}>({surah.englishNameTranslation})</Text>
+      <Text className="text-center mb-[14px]">
+        <Text className="text-[15px] font-bold text-foreground">{surah.englishName} </Text>
+        <Text className="text-[14px] italic text-muted-foreground">({surah.englishNameTranslation})</Text>
       </Text>
 
-      {/* Chips row */}
+      {/* Chips */}
       <View style={styles.chipsRow}>
-        <View style={styles.chip}>
+        <View style={[styles.chip, { backgroundColor: chipBg, borderColor: chipBorder }]}>
           <MaterialCommunityIcons name="map-marker-outline" size={12} color={HOME_COLORS.teal} />
           <Text style={styles.chipText}>{revelation}</Text>
         </View>
-        <View style={styles.chipDot} />
-        <View style={styles.chip}>
+        <View style={[styles.chipDot, { backgroundColor: borderColor }]} />
+        <View style={[styles.chip, { backgroundColor: chipBg, borderColor: chipBorder }]}>
           <Ionicons name="document-text-outline" size={12} color={HOME_COLORS.teal} />
           <Text style={styles.chipText}>{surah.numberOfAyahs} Ayat</Text>
         </View>
       </View>
 
       {/* Divider */}
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: borderColor }]} />
 
       {/* Controls row */}
       <View style={styles.controlsRow}>
-        {/* Surah dropdown */}
         <Pressable
           onPress={onSurahDropdownPress}
-          style={styles.dropdownBtn}
+          style={[styles.dropdownBtn, { borderColor }]}
+          className="bg-muted"
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         >
-          <Text style={styles.dropdownText} numberOfLines={1}>
+          <Text className="flex-1 text-[13px] font-semibold text-foreground" numberOfLines={1}>
             {surah.englishName}
           </Text>
-          <Ionicons name="chevron-down" size={14} color="#374151" />
+          <Ionicons name="chevron-down" size={14} color={isDark ? '#9CA3AF' : '#374151'} />
         </Pressable>
 
-        {/* Ayat dropdown */}
         <Pressable
           onPress={onAyatDropdownPress}
-          style={styles.dropdownBtn}
+          style={[styles.dropdownBtn, { borderColor }]}
+          className="bg-muted"
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         >
-          <Text style={styles.dropdownText}>Ayat</Text>
-          <Ionicons name="chevron-down" size={14} color="#374151" />
+          <Text className="flex-1 text-[13px] font-semibold text-foreground">Ayat</Text>
+          <Ionicons name="chevron-down" size={14} color={isDark ? '#9CA3AF' : '#374151'} />
         </Pressable>
 
-        {/* Read mode icon */}
-        <View style={styles.readIcon}>
+        <View style={[styles.readIcon, { borderColor }]} className="bg-muted">
           <Ionicons name="book-outline" size={20} color={HOME_COLORS.teal} />
         </View>
       </View>
 
       {/* Bismillah */}
       {showBismillah ? (
-        <Text style={styles.bismillah}>
+        <Text className="text-[24px] text-foreground text-center mb-2" style={styles.bismillah}>
           بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
         </Text>
       ) : null}
 
-      <View style={styles.bottomDivider} />
+      <View style={[styles.bottomDivider, { backgroundColor: borderColor }]} />
     </View>
   );
 }
@@ -91,27 +99,6 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingHorizontal: 20,
     alignItems: 'center',
-    backgroundColor: 'white',
-  },
-  arabicName: {
-    fontSize: 32,
-    color: '#111827',
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  englishRow: {
-    marginBottom: 14,
-    textAlign: 'center',
-  },
-  englishName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  englishTranslation: {
-    fontSize: 14,
-    color: '#6B7280',
-    fontStyle: 'italic',
   },
   chipsRow: {
     flexDirection: 'row',
@@ -123,18 +110,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#F0FFFE',
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: '#CCFAF8',
   },
   chipDot: {
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#D1D5DB',
   },
   chipText: {
     fontSize: 11,
@@ -144,7 +128,6 @@ const styles = StyleSheet.create({
   divider: {
     width: '100%',
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#E5E7EB',
     marginBottom: 16,
   },
   controlsRow: {
@@ -160,41 +143,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: '#FAFAFA',
     gap: 4,
-  },
-  dropdownText: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#374151',
   },
   readIcon: {
     width: 42,
     height: 42,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    backgroundColor: '#FAFAFA',
     alignItems: 'center',
     justifyContent: 'center',
   },
   bismillah: {
-    fontSize: 24,
-    color: '#111827',
-    textAlign: 'center',
     lineHeight: 48,
-    marginBottom: 8,
     writingDirection: 'rtl',
   },
   bottomDivider: {
     width: '100%',
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#E5E7EB',
     marginTop: 4,
   },
 });

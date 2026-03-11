@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { useColorScheme } from 'nativewind';
 import { HOME_COLORS } from '@/constants/home';
 
 export type SortType = 'number_asc' | 'number_desc' | 'name_asc';
@@ -43,38 +44,24 @@ interface FilterSortModalProps {
 }
 
 export function FilterSortModal({ visible, state, onApply, onDismiss }: FilterSortModalProps) {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const sheetBg = isDark ? '#0a0a0f' : 'white'; // Animated.View doesn't support className
+  const borderColor = isDark ? '#252628' : '#E5E7EB';
+  const handleColor = isDark ? '#374151' : '#D1D5DB';
+
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
-      Animated.spring(slideAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-        bounciness: 4,
-      }).start();
+      Animated.spring(slideAnim, { toValue: 1, useNativeDriver: true, bounciness: 4 }).start();
     } else {
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 220,
-        useNativeDriver: true,
-      }).start();
+      Animated.timing(slideAnim, { toValue: 0, duration: 220, useNativeDriver: true }).start();
     }
   }, [visible, slideAnim, state]);
 
-  const translateY = slideAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [400, 0],
-  });
-
+  const translateY = slideAnim.interpolate({ inputRange: [0, 1], outputRange: [400, 0] });
   const [localState, setLocalState] = useLocalState(state, visible);
-
-  function handleApply() {
-    onApply(localState);
-  }
-
-  function handleReset() {
-    setLocalState(DEFAULT_SORT_FILTER);
-  }
 
   return (
     <Modal
@@ -84,69 +71,85 @@ export function FilterSortModal({ visible, state, onApply, onDismiss }: FilterSo
       onRequestClose={onDismiss}
       statusBarTranslucent
     >
-      {/* Backdrop */}
       <TouchableWithoutFeedback onPress={onDismiss}>
         <View style={styles.backdrop} />
       </TouchableWithoutFeedback>
 
-      {/* Sheet */}
-      <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
+      <Animated.View
+        style={[styles.sheetLayout, { backgroundColor: sheetBg, transform: [{ translateY }] }]}
+      >
         {/* Handle */}
-        <View style={styles.handle} />
+        <View style={[styles.handle, { backgroundColor: handleColor }]} />
 
-        <Text style={styles.sheetTitle}>Sort &amp; Filter</Text>
+        <Text className="text-[17px] font-bold text-foreground mb-5">Sort &amp; Filter</Text>
 
         {/* Sort */}
-        <Text style={styles.sectionLabel}>Sort by</Text>
+        <Text className="text-[12px] font-semibold text-muted-foreground uppercase tracking-widest mb-[10px]">
+          Sort by
+        </Text>
         <View style={styles.optionsRow}>
-          {SORT_OPTIONS.map(opt => (
-            <Pressable
-              key={opt.value}
-              onPress={() => setLocalState(prev => ({ ...prev, sort: opt.value }))}
-              style={[styles.optionBtn, localState.sort === opt.value && styles.optionBtnSelected]}
-            >
-              <Text
+          {SORT_OPTIONS.map(opt => {
+            const selected = localState.sort === opt.value;
+            return (
+              <Pressable
+                key={opt.value}
+                onPress={() => setLocalState(prev => ({ ...prev, sort: opt.value }))}
                 style={[
-                  styles.optionText,
-                  localState.sort === opt.value && styles.optionTextSelected,
+                  styles.optionBtn,
+                  { borderColor: selected ? HOME_COLORS.teal : borderColor },
+                  selected ? { backgroundColor: '#ECFAF9' } : undefined,
                 ]}
+                className={selected ? '' : 'bg-muted'}
               >
-                {opt.label}
-              </Text>
-            </Pressable>
-          ))}
+                <Text
+                  style={{ color: selected ? HOME_COLORS.teal : (isDark ? '#9CA3AF' : '#6B7280') }}
+                  className={selected ? 'text-[13px] font-bold' : 'text-[13px] font-medium'}
+                >
+                  {opt.label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
 
-        {/* Revelation filter */}
-        <Text style={styles.sectionLabel}>Revelation type</Text>
+        {/* Revelation */}
+        <Text className="text-[12px] font-semibold text-muted-foreground uppercase tracking-widest mb-[10px]">
+          Revelation type
+        </Text>
         <View style={styles.optionsRow}>
-          {REVELATION_OPTIONS.map(opt => (
-            <Pressable
-              key={opt.value}
-              onPress={() => setLocalState(prev => ({ ...prev, revelation: opt.value }))}
-              style={[
-                styles.optionBtn,
-                localState.revelation === opt.value && styles.optionBtnSelected,
-              ]}
-            >
-              <Text
+          {REVELATION_OPTIONS.map(opt => {
+            const selected = localState.revelation === opt.value;
+            return (
+              <Pressable
+                key={opt.value}
+                onPress={() => setLocalState(prev => ({ ...prev, revelation: opt.value }))}
                 style={[
-                  styles.optionText,
-                  localState.revelation === opt.value && styles.optionTextSelected,
+                  styles.optionBtn,
+                  { borderColor: selected ? HOME_COLORS.teal : borderColor },
+                  selected ? { backgroundColor: '#ECFAF9' } : undefined,
                 ]}
+                className={selected ? '' : 'bg-muted'}
               >
-                {opt.label}
-              </Text>
-            </Pressable>
-          ))}
+                <Text
+                  style={{ color: selected ? HOME_COLORS.teal : (isDark ? '#9CA3AF' : '#6B7280') }}
+                  className={selected ? 'text-[13px] font-bold' : 'text-[13px] font-medium'}
+                >
+                  {opt.label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
 
         {/* Actions */}
         <View style={styles.actions}>
-          <Pressable onPress={handleReset} style={styles.resetBtn}>
-            <Text style={styles.resetText}>Reset</Text>
+          <Pressable
+            onPress={() => setLocalState(DEFAULT_SORT_FILTER)}
+            style={[styles.resetBtn, { borderColor }]}
+          >
+            <Text className="text-[15px] font-semibold text-muted-foreground">Reset</Text>
           </Pressable>
-          <Pressable onPress={handleApply} style={styles.applyBtn}>
+          <Pressable onPress={() => onApply(localState)} style={styles.applyBtn}>
             <Text style={styles.applyText}>Apply</Text>
           </Pressable>
         </View>
@@ -155,7 +158,6 @@ export function FilterSortModal({ visible, state, onApply, onDismiss }: FilterSo
   );
 }
 
-/** Local state that resets to `initial` whenever `visible` becomes true */
 function useLocalState(
   initial: SortFilterState,
   visible: boolean,
@@ -173,12 +175,11 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.45)',
   },
-  sheet: {
+  sheetLayout: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'white',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
@@ -189,69 +190,24 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#D1D5DB',
     alignSelf: 'center',
     marginBottom: 20,
   },
-  sheetTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 20,
-  },
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6B7280',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginBottom: 10,
-  },
-  optionsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 20,
-  },
+  optionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
   optionBtn: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-    backgroundColor: 'white',
   },
-  optionBtnSelected: {
-    borderColor: HOME_COLORS.teal,
-    backgroundColor: '#ECFAF9',
-  },
-  optionText: {
-    fontSize: 13,
-    color: '#6B7280',
-    fontWeight: '500',
-  },
-  optionTextSelected: {
-    color: HOME_COLORS.teal,
-    fontWeight: '700',
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 4,
-  },
+  actions: { flexDirection: 'row', gap: 12, marginTop: 4 },
   resetBtn: {
     flex: 1,
     height: 48,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  resetText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#6B7280',
   },
   applyBtn: {
     flex: 2,
@@ -261,9 +217,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  applyText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: 'white',
-  },
+  applyText: { fontSize: 15, fontWeight: '700', color: 'white' },
 });

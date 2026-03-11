@@ -30,10 +30,12 @@ const DEFAULTS: Omit<SettingsState, 'setMushaf' | 'setReciter' | 'setTranslation
 
 const STORAGE_KEY = '@quranapp:settings';
 
-const Ctx = createContext<SettingsState | null>(null);
+type CtxType = SettingsState & { ready: boolean };
+const Ctx = createContext<CtxType | null>(null);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState(DEFAULTS);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -44,16 +46,19 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
           setState((s) => ({ ...s, ...parsed }));
         }
       } catch {}
+      setReady(true);
     })();
   }, []);
 
   useEffect(() => {
+    if (!ready) return; // don't overwrite storage with defaults before load
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
-  }, [state]);
+  }, [state, ready]);
 
-  const value = useMemo<SettingsState>(
+  const value = useMemo<CtxType>(
     () => ({
       ...state,
+      ready,
       setMushaf: (m) => setState((s) => ({ ...s, mushaf: m })),
       setReciter: (r) => setState((s) => ({ ...s, reciter: r })),
       setTranslationEnabled: (v) => setState((s) => ({ ...s, translationEnabled: v })),
@@ -61,7 +66,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       setFontScale: (n) => setState((s) => ({ ...s, fontScale: n })),
       setTheme: (t) => setState((s) => ({ ...s, theme: t })),
     }),
-    [state],
+    [state, ready],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

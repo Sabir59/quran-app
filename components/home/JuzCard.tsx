@@ -5,7 +5,7 @@ import { HOME_COLORS } from '@/constants/home';
 
 interface JuzCardProps {
   juz: JuzEntry;
-  label?: 'Juz' | 'Parah'; // Same data, different display label
+  label?: 'Juz' | 'Parah';
   onPress: () => void;
 }
 
@@ -13,7 +13,8 @@ export const JuzCard = memo(function JuzCard({ juz, label = 'Juz', onPress }: Ju
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      style={({ pressed }) => [styles.layout, pressed && styles.pressed]}
+      className="bg-card mx-4 mb-[10px] rounded-[14px]"
       accessibilityRole="button"
       accessibilityLabel={`${label} ${juz.number}`}
     >
@@ -24,28 +25,24 @@ export const JuzCard = memo(function JuzCard({ juz, label = 'Juz', onPress }: Ju
 
       {/* Center */}
       <View style={styles.center}>
-        <Text style={styles.title}>
+        <Text className="text-[14px] font-bold text-foreground">
           {label} {juz.number}
         </Text>
-        <Text style={styles.startInfo}>
+        <Text className="text-[12px] text-muted-foreground">
           Surah {juz.startSurah}, Ayah {juz.startAyah}
         </Text>
       </View>
 
       {/* Arabic name */}
-      <Text style={styles.arabic}>{juz.arabicName}</Text>
+      <Text className="text-[20px] text-foreground ml-2 text-right">{juz.arabicName}</Text>
     </Pressable>
   );
 });
 
 const styles = StyleSheet.create({
-  card: {
+  layout: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
-    marginHorizontal: 16,
-    marginBottom: 10,
-    borderRadius: 14,
     padding: 14,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -53,9 +50,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  cardPressed: {
-    opacity: 0.85,
-  },
+  pressed: { opacity: 0.85 },
   numberBadge: {
     width: 44,
     height: 44,
@@ -72,23 +67,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: HOME_COLORS.purple,
   },
-  center: {
-    flex: 1,
-    gap: 4,
-  },
-  title: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  startInfo: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  arabic: {
-    fontSize: 20,
-    color: '#111827',
-    marginLeft: 8,
-    textAlign: 'right',
-  },
+  center: { flex: 1, gap: 4 },
 });

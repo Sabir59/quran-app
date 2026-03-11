@@ -26,10 +26,10 @@ function EmptyState({ isSearching }: { isSearching: boolean }) {
   return (
     <View style={styles.emptyWrap}>
       <Ionicons name="bookmark-outline" size={56} color="#D1D5DB" />
-      <Text style={styles.emptyTitle}>
+      <Text className="text-[18px] font-bold text-foreground text-center">
         {isSearching ? 'No matches found' : 'No bookmarks yet'}
       </Text>
-      <Text style={styles.emptySubtitle}>
+      <Text className="text-[14px] text-muted-foreground text-center leading-[22px]">
         {isSearching
           ? 'Try a different surah name or ayah number.'
           : 'Tap the bookmark icon on any ayah while reading to save it here.'}
@@ -127,8 +127,8 @@ export default function BookmarksScreen() {
           </View>
         </SafeAreaView>
 
-        {/* ── White content sheet ── */}
-        <View style={styles.sheet}>
+        {/* ── Content sheet — bg-muted adapts to dark mode ── */}
+        <View className="flex-1 bg-muted rounded-t-[28px] overflow-hidden">
           {isLoading ? (
             <View style={styles.centerWrap}>
               <ActivityIndicator size="large" color={TEAL} />
@@ -152,7 +152,7 @@ export default function BookmarksScreen() {
         </View>
       </View>
 
-      <SafeAreaView edges={['bottom']} style={styles.safeBottom} />
+      <SafeAreaView edges={['bottom']} className="bg-muted" />
     </>
   );
 }
@@ -208,15 +208,8 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 14,
-    color: '#111827',
+    color: '#111827', // search bar is on teal header — always dark text on white bg
     height: '100%',
-  },
-  sheet: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    overflow: 'hidden',
   },
   listContent: {
     flexGrow: 1,
@@ -236,18 +229,6 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     gap: 12,
   },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
   browseBtn: {
     marginTop: 8,
     backgroundColor: TEAL,
@@ -259,8 +240,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 15,
     fontWeight: '600',
-  },
-  safeBottom: {
-    backgroundColor: '#F9FAFB',
   },
 });

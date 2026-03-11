@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useColorScheme } from 'nativewind';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { AyahCombined } from '@/api/quran/quran';
@@ -21,32 +22,45 @@ export const AyahCard = memo(function AyahCard({
   onBookmark,
   onPlay,
 }: AyahCardProps) {
-  return (
-    <View style={[styles.card, !isLast && styles.cardBorder, isCurrentlyPlaying && styles.cardActive]}>
-      {/* Arabic text — right-aligned, large */}
-      <Text style={styles.arabic}>{ayah.arabic}</Text>
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
-      {/* Transliteration */}
+  // Colors computed from scheme — no hardcoding
+  const activeBg = isDark ? 'rgba(18,196,190,0.08)' : '#F0FFFE';
+  const borderColor = isDark ? '#252628' : '#E5E7EB'; // matches CSS --border variable
+
+  return (
+    <View
+      className="bg-background"
+      style={[
+        styles.layout,
+        !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: borderColor },
+        isCurrentlyPlaying && { backgroundColor: activeBg },
+      ]}
+    >
+      {/* Arabic */}
+      <Text
+        className="text-[24px] text-foreground text-right mb-[10px]"
+        style={styles.arabicLine}
+      >
+        {ayah.arabic}
+      </Text>
+
+      {/* Transliteration — teal brand color on both light/dark */}
       {ayah.transliteration ? (
         <Text style={styles.transliteration}>{ayah.transliteration}</Text>
       ) : null}
 
-      {/* Numbered translation */}
+      {/* Translation */}
       {ayah.translation ? (
-        <Text style={styles.translation}>
+        <Text className="text-[13px] text-muted-foreground leading-[22px] mb-4">
           {ayah.numberInSurah}. {ayah.translation}
         </Text>
       ) : null}
 
-      {/* Action buttons row */}
+      {/* Actions */}
       <View style={styles.actionsRow}>
-        <Pressable
-          onPress={onPlay}
-          style={styles.actionBtn}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={isCurrentlyPlaying ? 'Playing' : 'Play ayah'}
-        >
+        <Pressable onPress={onPlay} style={styles.actionBtn} hitSlop={8} accessibilityRole="button">
           <Ionicons
             name={isCurrentlyPlaying ? 'pause-circle' : 'play-circle'}
             size={22}
@@ -81,25 +95,13 @@ export const AyahCard = memo(function AyahCard({
 });
 
 const styles = StyleSheet.create({
-  card: {
+  layout: {
     paddingHorizontal: 20,
     paddingTop: 24,
     paddingBottom: 16,
-    backgroundColor: 'white',
   },
-  cardBorder: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E7EB',
-  },
-  cardActive: {
-    backgroundColor: '#F0FFFE',
-  },
-  arabic: {
-    fontSize: 24,
-    color: '#111827',
-    textAlign: 'right',
+  arabicLine: {
     lineHeight: 48,
-    marginBottom: 10,
     writingDirection: 'rtl',
   },
   transliteration: {
@@ -109,17 +111,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     lineHeight: 20,
   },
-  translation: {
-    fontSize: 13,
-    color: '#374151',
-    lineHeight: 22,
-    marginBottom: 16,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  actionBtn: {
-    padding: 6,
-  },
+  actionsRow: { flexDirection: 'row', gap: 4 },
+  actionBtn: { padding: 6 },
 });
