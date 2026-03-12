@@ -1,7 +1,7 @@
 import '@/global.css';
 
 import { useEffect, useLayoutEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Appearance, StyleSheet, View } from 'react-native';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack, useRouter, useSegments } from 'expo-router';
@@ -41,9 +41,15 @@ function ThemedApp() {
   const { theme, ready } = useSettings();
 
   // useLayoutEffect fires synchronously before paint — no flash between renders
-  // Only pass 'light'|'dark' — Android's AppearanceModule crashes on anything else
+  // Android's AppearanceModule crashes if it receives null ('system' maps to null internally)
+  // so we resolve 'system' → actual device scheme before calling setColorScheme.
   useLayoutEffect(() => {
-    setColorScheme(theme);
+    if (theme === 'light' || theme === 'dark') {
+      setColorScheme(theme);
+    } else {
+      const deviceScheme = Appearance.getColorScheme() ?? 'light';
+      setColorScheme(deviceScheme as 'light' | 'dark');
+    }
   }, [theme, setColorScheme]);
 
   // Hold rendering until stored settings are loaded so the correct theme

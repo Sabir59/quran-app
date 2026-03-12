@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import { Platform, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { Badge } from '@/components/ui/badge';
@@ -40,11 +41,16 @@ function BookmarkTabIcon({ focused }: { focused: boolean }) {
 export default function MainLayout() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const insets = useSafeAreaInsets();
 
   // Tab bar background and border must be computed imperatively —
   // tabBarStyle is a plain object, className does not apply to it.
   const tabBarBg = isDark ? '#0a0a0f' : 'white';          // matches --background
   const tabBarBorder = isDark ? '#252628' : '#F3F4F6';    // matches --border
+
+  // Android gesture nav bar sits below the tab bar — add bottom inset so
+  // the tab bar clears it completely.
+  const androidBottom = insets.bottom + 10;
 
   return (
     <>
@@ -58,8 +64,8 @@ export default function MainLayout() {
             backgroundColor: tabBarBg,
             borderTopWidth: 1,
             borderTopColor: tabBarBorder,
-            height: Platform.OS === 'ios' ? 88 : 64,
-            paddingBottom: Platform.OS === 'ios' ? 28 : 10,
+            height: Platform.OS === 'ios' ? 88 : 56 + insets.bottom,
+            paddingBottom: Platform.OS === 'ios' ? 28 : androidBottom,
             paddingTop: 8,
             elevation: 8,
             shadowColor: '#000',
