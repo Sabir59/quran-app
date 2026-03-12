@@ -37,28 +37,48 @@ export default function RootLayout() {
 }
 
 // ─── Audio → Progress bridge ──────────────────────────────────────────────────
-// Runs a 10-second tick whenever audio is playing, crediting listening time.
+// Uses timestamps to credit listening time accurately on play/pause/track change.
 
 function AudioProgressBridge() {
-  const { isPlaying } = useAudioPlayer();
+  const { isPlaying, currentTrack } = useAudioPlayer();
   const { addListeningSeconds } = useProgress();
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const playStartRef = useRef<number | null>(null);
+  const lastTrackKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
+    const trackKey = currentTrack
+      ? `${currentTrack.surahNumber}-${currentTrack.ayahNumber}`
+      : null;
+
     if (isPlaying) {
-      intervalRef.current = setInterval(() => {
-        addListeningSeconds(10);
-      }, 10_000);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
+      if (!playStartRef.current) {
+        // Started playing
+        playStartRef.current = Date.now();
+        lastTrackKeyRef.current = trackKey;
+      } else if (trackKey !== lastTrackKeyRef.current) {
+        // Track changed while playing — credit elapsed for previous
+        const elapsed = Math.round((Date.now() - playStartRef.current) / 1000);
+        if (elapsed > 0) addListeningSeconds(elapsed);
+        playStartRef.current = Date.now();
+        lastTrackKeyRef.current = trackKey;
       }
+    } else if (playStartRef.current) {
+      // Paused/stopped — credit elapsed
+      const elapsed = Math.round((Date.now() - playStartRef.current) / 1000);
+      if (elapsed > 0) addListeningSeconds(elapsed);
+      playStartRef.current = null;
+      lastTrackKeyRef.current = null;
     }
+  }, [isPlaying, currentTrack?.surahNumber, currentTrack?.ayahNumber, addListeningSeconds]);
+
+  useEffect(() => {
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (playStartRef.current) {
+        const elapsed = Math.round((Date.now() - playStartRef.current) / 1000);
+        if (elapsed > 0) addListeningSeconds(elapsed);
+      }
     };
-  }, [isPlaying, addListeningSeconds]);
+  }, [addListeningSeconds]);
 
   return null;
 }

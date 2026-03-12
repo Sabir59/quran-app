@@ -5,6 +5,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -107,47 +108,39 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   const [visits, setVisits] = useState<VisitRecord[]>([]);
   const [totalListeningSeconds, setTotalListeningSeconds] = useState(0);
 
-  // Load once on mount
+  // Use refs to hold current values for saves without closure issues
+  const visitsRef = useRef<VisitRecord[]>([]);
+  const listenSecsRef = useRef(0);
+
+  // Load once on mount, initialize refs
   useEffect(() => {
     load().then(data => {
+      visitsRef.current = data.visits;
+      listenSecsRef.current = data.totalListeningSeconds;
       setVisits(data.visits);
       setTotalListeningSeconds(data.totalListeningSeconds);
     });
   }, []);
 
-  const recordVisit = useCallback(
-    (surahNumber: number, surahName: string, ayah = 1) => {
-      setVisits(prev => {
-        const record: VisitRecord = {
-          date: today(),
-          surahNumber,
-          surahName,
-          lastAyah: ayah,
-          timestamp: Date.now(),
-        };
-        const next = [...prev, record];
-        // Keep at most 500 records to avoid unbounded growth
-        const trimmed = next.slice(-500);
-        // Persist without blocking render
-        setTotalListeningSeconds(sec => {
-          save({ visits: trimmed, totalListeningSeconds: sec });
-          return sec;
-        });
-        return trimmed;
-      });
-    },
-    [],
-  );
+  const recordVisit = useCallback((surahNumber: number, surahName: string, ayah = 1) => {
+    const record: VisitRecord = {
+      date: today(),
+      surahNumber,
+      surahName,
+      lastAyah: ayah,
+      timestamp: Date.now(),
+    };
+    const trimmed = [...visitsRef.current, record].slice(-500);
+    visitsRef.current = trimmed;
+    setVisits(trimmed);
+    save({ visits: trimmed, totalListeningSeconds: listenSecsRef.current });
+  }, []);
 
   const addListeningSeconds = useCallback((seconds: number) => {
-    setTotalListeningSeconds(prev => {
-      const next = prev + seconds;
-      setVisits(v => {
-        save({ visits: v, totalListeningSeconds: next });
-        return v;
-      });
-      return next;
-    });
+    if (seconds <= 0) return;
+    listenSecsRef.current += seconds;
+    setTotalListeningSeconds(listenSecsRef.current);
+    save({ visits: visitsRef.current, totalListeningSeconds: listenSecsRef.current });
   }, []);
 
   // Derived — memoised so consumers don't re-render unnecessarily

@@ -28,7 +28,7 @@ interface AudioPlayerContextValue {
   duration: number;   // ms
   speed: PlaybackSpeed;
   // Actions
-  loadAndPlay: (playlist: PlayerTrack[], startIndex?: number) => Promise<void>;
+  loadAndPlay: (playlist: PlayerTrack[], startIndex?: number, seekToMs?: number) => Promise<void>;
   playPause: () => Promise<void>;
   next: () => Promise<void>;
   previous: () => Promise<void>;
@@ -73,7 +73,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
   }, []);
 
   // ── Core: play a specific index ──────────────────────────────────────────
-  const playAtIndex = useCallback(async (index: number) => {
+  const playAtIndex = useCallback(async (index: number, seekToMs = 0) => {
     const track = playlistRef.current[index];
     if (!track?.audioUrl) return;
 
@@ -98,6 +98,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
           rate: speedRef.current,
           shouldCorrectPitch: true,
           progressUpdateIntervalMillis: 250,
+          positionMillis: seekToMs,
         },
         (status: AVPlaybackStatus) => {
           if (!status.isLoaded) return;
@@ -127,10 +128,10 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
 
   // ── Public API ───────────────────────────────────────────────────────────
 
-  const loadAndPlay = useCallback(async (newPlaylist: PlayerTrack[], startIndex = 0) => {
+  const loadAndPlay = useCallback(async (newPlaylist: PlayerTrack[], startIndex = 0, seekToMs = 0) => {
     playlistRef.current = newPlaylist;
     setPlaylist(newPlaylist);
-    await playAtIndex(startIndex);
+    await playAtIndex(startIndex, seekToMs);
   }, [playAtIndex]);
 
   const playPause = useCallback(async () => {
