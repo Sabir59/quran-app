@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -22,6 +22,7 @@ import { useSurahDetail, useSurahList } from '@/hooks/api/quran';
 import { useBookmarks } from '@/context/BookmarksContext';
 import { useAudioPlayer } from '@/context/AudioPlayerContext';
 import type { PlayerTrack } from '@/context/AudioPlayerContext';
+import { useProgress } from '@/context/ProgressContext';
 
 const bgAuth = require('@/assets/images/bg-auth.png');
 const logoAlQuran = require('@/assets/images/logo-al-quran.png');
@@ -38,10 +39,18 @@ export default function SurahScreen() {
   const { data: surahList } = useSurahList();
   const { isBookmarked: checkBookmarked, addBookmark, removeBookmark } = useBookmarks();
   const { loadAndPlay, playPause, currentTrack, isPlaying } = useAudioPlayer();
+  const { recordVisit } = useProgress();
 
   const [currentAyah, setCurrentAyah] = useState(1);
   const [surahPickerVisible, setSurahPickerVisible] = useState(false);
   const [ayahPickerVisible, setAyahPickerVisible] = useState(false);
+
+  // Record visit when surah data loads (name comes from API, not just URL param)
+  useEffect(() => {
+    if (data?.surah) {
+      recordVisit(surahNumber, data.surah.englishName, 1);
+    }
+  }, [surahNumber, data?.surah?.englishName]);
 
   const flatListRef = useRef<FlatList<AyahCombined>>(null);
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 });

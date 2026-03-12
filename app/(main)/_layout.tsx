@@ -97,6 +97,15 @@ export default function MainLayout() {
           }}
         />
         <Tabs.Screen
+          name="quran"
+          options={{
+            title: 'Progress',
+            tabBarIcon: ({ focused }) => (
+              <TabIcon name={focused ? 'trending-up' : 'trending-up-outline'} focused={focused} />
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="profile"
           options={{
             title: 'Profile',
@@ -106,9 +115,8 @@ export default function MainLayout() {
           }}
         />
 
-        {/* Hidden from tab bar — accessible but not yet designed */}
+        {/* Hidden from tab bar */}
         <Tabs.Screen name="explore" options={{ href: null }} />
-        <Tabs.Screen name="quran" options={{ href: null }} />
 
         {/* Detail screen — hidden from tab bar, pushed on top */}
         <Tabs.Screen

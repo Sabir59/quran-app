@@ -1,22 +1,22 @@
 import '@/global.css';
 
-import { useEffect, useLayoutEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { Appearance, StyleSheet, View } from 'react-native';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 
-import { AudioPlayerProvider } from '@/context/AudioPlayerContext';
+import { AudioPlayerProvider, useAudioPlayer } from '@/context/AudioPlayerContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { BookmarksProvider } from '@/context/BookmarksContext';
+import { ProgressProvider, useProgress } from '@/context/ProgressContext';
 import { MiniPlayer } from '@/components/player/MiniPlayer';
 import { SettingsProvider, useSettings } from '@/lib/settings';
 
 const queryClient = new QueryClient();
 
 // ─── Root layout — provider shell only ───────────────────────────────────────
-// No hooks here — providers must wrap everything before any hook runs.
 
 export default function RootLayout() {
   return (
@@ -24,14 +24,43 @@ export default function RootLayout() {
       <SettingsProvider>
         <AuthProvider>
           <BookmarksProvider>
-            <AudioPlayerProvider>
-              <ThemedApp />
-            </AudioPlayerProvider>
+            <ProgressProvider>
+              <AudioPlayerProvider>
+                <ThemedApp />
+              </AudioPlayerProvider>
+            </ProgressProvider>
           </BookmarksProvider>
         </AuthProvider>
       </SettingsProvider>
     </QueryClientProvider>
   );
+}
+
+// ─── Audio → Progress bridge ──────────────────────────────────────────────────
+// Runs a 10-second tick whenever audio is playing, crediting listening time.
+
+function AudioProgressBridge() {
+  const { isPlaying } = useAudioPlayer();
+  const { addListeningSeconds } = useProgress();
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (isPlaying) {
+      intervalRef.current = setInterval(() => {
+        addListeningSeconds(10);
+      }, 10_000);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isPlaying, addListeningSeconds]);
+
+  return null;
 }
 
 // ─── Theme + guard wrapper ────────────────────────────────────────────────────
@@ -52,8 +81,6 @@ function ThemedApp() {
     }
   }, [theme, setColorScheme]);
 
-  // Hold rendering until stored settings are loaded so the correct theme
-  // is applied from the very first frame — no startup flash.
   if (!ready) return null;
 
   return (
@@ -62,20 +89,15 @@ function ThemedApp() {
         <View style={styles.root}>
           <Stack screenOptions={{ headerShown: false }} />
           <MiniPlayer />
+          <AudioProgressBridge />
         </View>
       </AuthGuard>
     </ThemeProvider>
   );
 }
 
-// ─── Auth guard — route protection ───────────────────────────────────────────
-/**
- * Watches auth status and redirects whenever it changes:
- *   authenticated / guest  + auth group screen   → push to home
- *   unauthenticated        + non-auth screen      → push to login
- *
- * 'initializing' is skipped — index.tsx shows a loading screen during that window.
- */
+// ─── Auth guard ───────────────────────────────────────────────────────────────
+
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { status } = useAuth();
   const segments = useSegments();
@@ -100,7 +122,5 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
+  root: { flex: 1 },
 });
