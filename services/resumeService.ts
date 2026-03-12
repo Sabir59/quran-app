@@ -54,8 +54,17 @@ export const resumeService = {
   },
   saveImmediate(state: ResumeState): void {
     if (pendingSave) { clearTimeout(pendingSave); pendingSave = null; }
-    pendingState = null;
+    pendingState = state; // keep in memory so loadLatest() wins the race vs AsyncStorage write
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
+  },
+  /** Returns the latest in-memory state (not yet flushed to AsyncStorage), or null. */
+  getCurrent(): ResumeState | null {
+    return pendingState;
+  },
+  /** Returns in-memory pending state if available, otherwise reads from AsyncStorage. */
+  async loadLatest(): Promise<ResumeState | null> {
+    if (pendingState) return pendingState;
+    return this.load();
   },
   async load(): Promise<ResumeState | null> {
     try {

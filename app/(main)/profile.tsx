@@ -340,9 +340,6 @@ export default function ProfileScreen() {
         </ScrollView>
       </View>
 
-      {/* Bottom safe area follows the sheet color */}
-      <SafeAreaView edges={['bottom']} className="bg-muted" />
-
       <ReciterModal
         visible={reciterModalVisible}
         currentId={reciter}

@@ -3,6 +3,7 @@ import '@/global.css';
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { Appearance, StyleSheet, View } from 'react-native';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import * as NavigationBar from 'expo-navigation-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useColorScheme } from 'nativewind';
@@ -100,6 +101,11 @@ function ThemedApp() {
       setColorScheme(deviceScheme as 'light' | 'dark');
     }
   }, [theme, setColorScheme]);
+
+  // Sync Android system navigation bar button style with app theme
+  useEffect(() => {
+    NavigationBar.setStyle(theme === 'dark' ? 'dark' : 'light');
+  }, [theme]);
 
   if (!ready) return null;
 

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useColorScheme } from 'nativewind';
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -16,6 +16,7 @@ import { HOME_COLORS } from '@/constants/home';
 import { useProgress } from '@/context/ProgressContext';
 import { resumeService } from '@/services/resumeService';
 import type { ResumeState } from '@/services/resumeService';
+import { scrollTarget } from '@/services/scrollTarget';
 
 const TEAL = HOME_COLORS.teal;
 const TOTAL_SURAHS = 114;
@@ -98,11 +99,16 @@ function ContinueCard({ resume }: { resume: ResumeState | null }) {
       router.push('/(main)/home');
       return;
     }
-    const base = `/(main)/surah?number=${resume.surahNumber}&name=${encodeURIComponent(resume.surahName)}&ayah=${resume.ayahNumber}`;
-    const url = resume.mode === 'listening' && resume.positionMs > 0
-      ? `${base}&positionMs=${Math.round(resume.positionMs)}`
-      : base;
-    router.push(url as any);
+    // Store the resume target in module-level state so surah.tsx can read it
+    // reliably on focus — URL params are unreliable for Tabs.Screen navigation
+    // because tab navigate() semantics drop param updates for the same route.
+    scrollTarget.set({
+      surahNumber: resume.surahNumber,
+      ayahNumber: resume.ayahNumber,
+      positionMs: resume.positionMs,
+      openPlayer: true,
+    });
+    router.push(`/(main)/surah?number=${resume.surahNumber}&name=${encodeURIComponent(resume.surahName)}` as any);
   };
 
   return (
@@ -156,25 +162,26 @@ export default function ProgressScreen() {
   const { streak, lastRead, weekActivity, surahsVisited, totalListeningSeconds } = useProgress();
   const [resumeState, setResumeState] = useState<ResumeState | null>(null);
 
-  // Load resume state from storage
-  useEffect(() => {
-    resumeService.load().then(r => {
-      if (r) {
-        setResumeState(r);
-      } else if (lastRead) {
-        // Fall back to last visit record if no precise resume state
-        setResumeState({
-          surahNumber: lastRead.surahNumber,
-          surahName: lastRead.surahName,
-          ayahNumber: lastRead.lastAyah,
-          positionMs: 0,
-          durationMs: 0,
-          mode: 'reading',
-          timestamp: lastRead.timestamp,
-        });
-      }
-    });
-  }, [lastRead]);
+  // Reload resume state every time this tab comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      resumeService.loadLatest().then(r => {
+        if (r) {
+          setResumeState(r);
+        } else if (lastRead) {
+          setResumeState({
+            surahNumber: lastRead.surahNumber,
+            surahName: lastRead.surahName,
+            ayahNumber: lastRead.lastAyah,
+            positionMs: 0,
+            durationMs: 0,
+            mode: 'reading',
+            timestamp: lastRead.timestamp,
+          });
+        }
+      });
+    }, [lastRead]),
+  );
 
   const readCount = surahsVisited.length;
   const completionPct = Math.round((readCount / TOTAL_SURAHS) * 100);
@@ -234,7 +241,6 @@ export default function ProgressScreen() {
           </ScrollView>
         </View>
       </View>
-      <SafeAreaView edges={['bottom']} className="bg-background" />
     </>
   );
 }

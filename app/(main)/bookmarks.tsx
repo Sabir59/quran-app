@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { useScrollToTop } from '@react-navigation/native';
 
 import { BookmarkCard } from '@/components/bookmarks/BookmarkCard';
 import { HOME_COLORS } from '@/constants/home';
@@ -52,6 +53,9 @@ function EmptyState({ isSearching }: { isSearching: boolean }) {
 export default function BookmarksScreen() {
   const { bookmarks, isLoading, removeBookmark } = useBookmarks();
   const [query, setQuery] = useState('');
+
+  const flatListRef = useRef<FlatList>(null);
+  useScrollToTop(flatListRef);
 
   const filtered = useMemo<Bookmark[]>(() => {
     if (!query.trim()) return bookmarks;
@@ -135,6 +139,7 @@ export default function BookmarksScreen() {
             </View>
           ) : (
             <FlatList
+              ref={flatListRef}
               data={filtered}
               keyExtractor={keyExtractor}
               renderItem={renderItem}
@@ -152,7 +157,6 @@ export default function BookmarksScreen() {
         </View>
       </View>
 
-      <SafeAreaView edges={['bottom']} className="bg-muted" />
     </>
   );
 }

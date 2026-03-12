@@ -1,6 +1,6 @@
-import { memo } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { useColorScheme } from 'nativewind';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { AyahCombined } from '@/api/quran/quran';
 import { HOME_COLORS } from '@/constants/home';
@@ -10,6 +10,7 @@ interface AyahCardProps {
   isLast: boolean;
   bookmarked: boolean;
   isCurrentlyPlaying: boolean;
+  isResumeTarget?: boolean;
   onBookmark: () => void;
   onPlay: () => void;
 }
@@ -19,6 +20,7 @@ export const AyahCard = memo(function AyahCard({
   isLast,
   bookmarked,
   isCurrentlyPlaying,
+  isResumeTarget = false,
   onBookmark,
   onPlay,
 }: AyahCardProps) {
@@ -29,13 +31,38 @@ export const AyahCard = memo(function AyahCard({
   const activeBg = isDark ? 'rgba(18,196,190,0.08)' : '#F0FFFE';
   const borderColor = isDark ? '#252628' : '#E5E7EB'; // matches CSS --border variable
 
+  // Resume target: pulse teal border then fade away
+  const pulseAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (!isResumeTarget) return;
+    pulseAnim.setValue(0);
+    Animated.sequence([
+      Animated.timing(pulseAnim, { toValue: 1, duration: 400, useNativeDriver: false }),
+      Animated.timing(pulseAnim, { toValue: 0.5, duration: 300, useNativeDriver: false }),
+      Animated.timing(pulseAnim, { toValue: 1, duration: 300, useNativeDriver: false }),
+      Animated.timing(pulseAnim, { toValue: 0.5, duration: 300, useNativeDriver: false }),
+      Animated.timing(pulseAnim, { toValue: 1, duration: 300, useNativeDriver: false }),
+      Animated.timing(pulseAnim, { toValue: 0, duration: 600, useNativeDriver: false }),
+    ]).start();
+  }, [isResumeTarget]);
+
+  const resumeBorderColor = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['transparent', HOME_COLORS.teal],
+  });
+  const resumeBg = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['transparent', isDark ? 'rgba(18,196,190,0.12)' : 'rgba(18,196,190,0.08)'],
+  });
+
   return (
-    <View
+    <Animated.View
       className="bg-background"
       style={[
         styles.layout,
         !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: borderColor },
         isCurrentlyPlaying && { backgroundColor: activeBg },
+        isResumeTarget && { borderWidth: 2, borderColor: resumeBorderColor, backgroundColor: resumeBg, borderRadius: 8 },
       ]}
     >
       {/* Arabic */}
@@ -90,7 +117,7 @@ export const AyahCard = memo(function AyahCard({
           />
         </Pressable>
       </View>
-    </View>
+    </Animated.View>
   );
 });
 

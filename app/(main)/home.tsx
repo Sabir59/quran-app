@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useScrollToTop } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useColorScheme } from 'nativewind';
@@ -132,6 +133,9 @@ export default function HomeScreen() {
   const [sortFilter, setSortFilter] = useState<SortFilterState>(DEFAULT_SORT_FILTER);
   const [filterVisible, setFilterVisible] = useState(false);
 
+  const flatListRef = useRef<FlatList>(null);
+  useScrollToTop(flatListRef);
+
   // Navigate to surah detail
   const handleSurahPress = useCallback(
     (surah: SurahSummary) => {
@@ -223,6 +227,7 @@ export default function HomeScreen() {
         {/* ── Content sheet — bg-background adapts to dark mode ── */}
         <View className="flex-1 bg-background rounded-t-[28px]" style={styles.contentSheetLayout}>
           <FlatList
+            ref={flatListRef}
             data={listData}
             keyExtractor={keyExtractor}
             renderItem={renderItem}
@@ -253,8 +258,6 @@ export default function HomeScreen() {
           />
         </View>
       </View>
-
-      <SafeAreaView edges={['bottom']} className="bg-background" />
 
       {/* Filter / Sort modal */}
       <FilterSortModal

@@ -27,8 +27,9 @@ interface AudioPlayerContextValue {
   position: number;   // ms
   duration: number;   // ms
   speed: PlaybackSpeed;
+  playerModalVisible: boolean;
   // Actions
-  loadAndPlay: (playlist: PlayerTrack[], startIndex?: number, seekToMs?: number) => Promise<void>;
+  loadAndPlay: (playlist: PlayerTrack[], startIndex?: number, seekToMs?: number, autoPlay?: boolean) => Promise<void>;
   playPause: () => Promise<void>;
   next: () => Promise<void>;
   previous: () => Promise<void>;
@@ -36,6 +37,8 @@ interface AudioPlayerContextValue {
   seekRelative: (deltaMs: number) => Promise<void>;
   stop: () => Promise<void>;
   setSpeed: (speed: PlaybackSpeed) => Promise<void>;
+  openPlayerModal: () => void;
+  closePlayerModal: () => void;
 }
 
 // ─── Context ─────────────────────────────────────────────────────────────────
@@ -52,6 +55,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
   const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
   const [speed, setSpeedState] = useState<PlaybackSpeed>(1);
+  const [playerModalVisible, setPlayerModalVisible] = useState(false);
 
   // Stable refs — avoid stale closures inside expo-av callbacks
   const soundRef = useRef<Audio.Sound | null>(null);
@@ -73,7 +77,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
   }, []);
 
   // ── Core: play a specific index ──────────────────────────────────────────
-  const playAtIndex = useCallback(async (index: number, seekToMs = 0) => {
+  const playAtIndex = useCallback(async (index: number, seekToMs = 0, autoPlay = true) => {
     const track = playlistRef.current[index];
     if (!track?.audioUrl) return;
 
@@ -94,7 +98,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
       const { sound } = await Audio.Sound.createAsync(
         { uri: track.audioUrl },
         {
-          shouldPlay: true,
+          shouldPlay: autoPlay,
           rate: speedRef.current,
           shouldCorrectPitch: true,
           progressUpdateIntervalMillis: 250,
@@ -128,10 +132,10 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
 
   // ── Public API ───────────────────────────────────────────────────────────
 
-  const loadAndPlay = useCallback(async (newPlaylist: PlayerTrack[], startIndex = 0, seekToMs = 0) => {
+  const loadAndPlay = useCallback(async (newPlaylist: PlayerTrack[], startIndex = 0, seekToMs = 0, autoPlay = true) => {
     playlistRef.current = newPlaylist;
     setPlaylist(newPlaylist);
-    await playAtIndex(startIndex, seekToMs);
+    await playAtIndex(startIndex, seekToMs, autoPlay);
   }, [playAtIndex]);
 
   const playPause = useCallback(async () => {
@@ -195,6 +199,9 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
     setDuration(0);
   }, []);
 
+  const openPlayerModal = useCallback(() => setPlayerModalVisible(true), []);
+  const closePlayerModal = useCallback(() => setPlayerModalVisible(false), []);
+
   const setSpeed = useCallback(async (newSpeed: PlaybackSpeed) => {
     speedRef.current = newSpeed;
     setSpeedState(newSpeed);
@@ -218,6 +225,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
         position,
         duration,
         speed,
+        playerModalVisible,
         loadAndPlay,
         playPause,
         next,
@@ -226,6 +234,8 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
         seekRelative,
         stop,
         setSpeed,
+        openPlayerModal,
+        closePlayerModal,
       }}
     >
       {children}

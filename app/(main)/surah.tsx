@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  InteractionManager,
   Pressable,
   StatusBar,
   StyleSheet,
@@ -10,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import type { AyahCombined } from '@/api/quran/quran';
@@ -25,9 +26,13 @@ import type { PlayerTrack } from '@/context/AudioPlayerContext';
 import { useProgress } from '@/context/ProgressContext';
 import { resumeService } from '@/services/resumeService';
 import type { ResumeState } from '@/services/resumeService';
+import { scrollTarget } from '@/services/scrollTarget';
 
 const bgAuth = require('@/assets/images/bg-auth.png');
 const logoAlQuran = require('@/assets/images/logo-al-quran.png');
+
+// Used by getItemLayout so scrollToIndex can reach any item without pre-rendering
+const AYAH_ESTIMATED_HEIGHT = 220;
 
 export default function SurahScreen() {
   const {
@@ -49,18 +54,26 @@ export default function SurahScreen() {
   const { data: surahList } = useSurahList();
   const { isBookmarked: checkBookmarked, addBookmark, removeBookmark } = useBookmarks();
   const {
-    loadAndPlay, playPause, currentTrack, isPlaying, position, duration,
+    loadAndPlay, playPause, currentTrack, isPlaying, position, duration, openPlayerModal,
   } = useAudioPlayer();
   const { recordVisit } = useProgress();
 
-  const [currentAyah, setCurrentAyah] = useState(resumeAyah || 1);
+  const [currentAyah, setCurrentAyah] = useState(1);
+  const [resumedAyah, setResumedAyah] = useState(0); // set when scrollTarget is consumed
   const [surahPickerVisible, setSurahPickerVisible] = useState(false);
   const [ayahPickerVisible, setAyahPickerVisible] = useState(false);
 
   const flatListRef = useRef<FlatList<AyahCombined>>(null);
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 });
-  const hasScrolledToResume = useRef(false);
-  const hasRestoredAudio = useRef(false);
+
+  // ── Preserve last audio position across stop() clearing currentTrack ─────────
+  // stop() clears currentTrack + position in one React batch. By the time effects
+  // run (saving resume state), currentTrack is already null. This ref captures the
+  // last known audio position inline every render — survives the state clearing.
+  const lastAudioRef = useRef<{ ayahNumber: number; positionMs: number } | null>(null);
+  if (currentTrack?.surahNumber === surahNumber && currentTrack.ayahNumber > 0) {
+    lastAudioRef.current = { ayahNumber: currentTrack.ayahNumber, positionMs: position };
+  }
 
   // ── Always-current state snapshot (ref updated every render, no deps needed) ─
   const latestResumeRef = useRef<ResumeState | null>(null);
@@ -70,8 +83,10 @@ export default function SurahScreen() {
     ayahNumber:
       currentTrack?.surahNumber === surahNumber && currentTrack.ayahNumber > 0
         ? currentTrack.ayahNumber
-        : currentAyah,
-    positionMs: currentTrack?.surahNumber === surahNumber ? position : 0,
+        : (lastAudioRef.current?.ayahNumber ?? currentAyah),
+    positionMs: currentTrack?.surahNumber === surahNumber
+      ? position
+      : (lastAudioRef.current?.positionMs ?? 0),
     durationMs: currentTrack?.surahNumber === surahNumber ? duration : 0,
     mode:
       currentTrack?.surahNumber === surahNumber && (isPlaying || position > 500)
@@ -80,21 +95,15 @@ export default function SurahScreen() {
     timestamp: Date.now(),
   };
 
+  // Reset last audio position when navigating to a different surah
+  useEffect(() => { lastAudioRef.current = null; }, [surahNumber]);
+
   // ── Record surah visit for progress grid ─────────────────────────────────────
   useEffect(() => {
     if (data?.surah) {
       recordVisit(surahNumber, data.surah.englishName, 1);
     }
   }, [surahNumber, data?.surah?.englishName]);
-
-  // ── Auto-scroll to resume ayah once data loads ────────────────────────────────
-  useEffect(() => {
-    if (!data || !resumeAyah || hasScrolledToResume.current) return;
-    hasScrolledToResume.current = true;
-    // Small delay so FlatList has rendered its items
-    const t = setTimeout(() => scrollToAyah(resumeAyah), 350);
-    return () => clearTimeout(t);
-  }, [data, resumeAyah]);
 
   // ── Auto-restore audio when playlist is ready ─────────────────────────────────
   const playlist = useMemo<PlayerTrack[]>(() => {
@@ -112,26 +121,63 @@ export default function SurahScreen() {
       }));
   }, [data, surahNumber]);
 
-  useEffect(() => {
-    if (!resumePositionMs || !playlist.length || hasRestoredAudio.current) return;
-    if (!resumeAyah) return;
-    hasRestoredAudio.current = true;
-    const idx = playlist.findIndex(t => t.ayahNumber === resumeAyah);
-    if (idx >= 0) {
-      loadAndPlay(playlist, idx, resumePositionMs);
+  // ── Consume resume target (scroll + optional audio) ───────────────────────────
+  // Stored in module-level scrollTarget to guarantee delivery regardless of
+  // whether Expo Router actually updates useLocalSearchParams for this Tab.Screen.
+  //
+  // Two trigger points:
+  //  1. useFocusEffect — screen gains focus, data already in cache → scroll immediately
+  //  2. useEffect([data]) — data loads from network AFTER screen is already focused
+  //
+  // A ref is used so both triggers share a stable function without stale closures.
+  const consumeScrollTargetRef = useRef<() => void>(() => {});
+  consumeScrollTargetRef.current = () => {
+    if (!data) return;
+    const target = scrollTarget.get();
+    if (!target || target.surahNumber !== surahNumber) return;
+    scrollTarget.clear(); // clear first — prevents double-run from useFocusEffect + useEffect([data])
+
+    // Mark this ayah for the pulse highlight
+    setResumedAyah(target.ayahNumber);
+
+    // Scroll to the target ayah
+    if (target.ayahNumber > 1) {
+      InteractionManager.runAfterInteractions(() => {
+        flatListRef.current?.scrollToOffset({
+          offset: (target.ayahNumber - 1) * AYAH_ESTIMATED_HEIGHT,
+          animated: true,
+        });
+        setCurrentAyah(target.ayahNumber);
+      });
     }
-  }, [playlist, resumeAyah, resumePositionMs]);
+
+    // Always open player — load at saved position without auto-playing
+    if (target.openPlayer && playlist.length > 0) {
+      const idx = playlist.findIndex(t => t.ayahNumber === target.ayahNumber);
+      const startIdx = idx >= 0 ? idx : 0;
+      loadAndPlay(playlist, startIdx, target.positionMs, false);
+      openPlayerModal();
+    }
+  };
+
+  // Trigger 1: screen gains focus (handles cached data case)
+  useFocusEffect(useCallback(() => { consumeScrollTargetRef.current(); }, []));
+
+  // Trigger 2: data arrives from network (handles first-visit case)
+  useEffect(() => { consumeScrollTargetRef.current(); }, [data, surahNumber]);
 
   // ── Save resume state on key events ──────────────────────────────────────────
 
-  // On unmount — flush immediately so we don't lose the last position
-  useEffect(() => {
-    return () => {
-      if (latestResumeRef.current) {
-        resumeService.saveImmediate(latestResumeRef.current);
-      }
-    };
-  }, []);
+  // On blur (tab switch or screen leave) — flush immediately so quran.tsx gets fresh data
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        if (latestResumeRef.current) {
+          resumeService.saveImmediate(latestResumeRef.current);
+        }
+      };
+    }, []),
+  );
 
   // On play/pause toggle
   const prevIsPlayingRef = useRef(isPlaying);
@@ -171,7 +217,7 @@ export default function SurahScreen() {
     flatListRef.current?.scrollToIndex({
       index: ayahNum - 1,
       animated: true,
-      viewPosition: 0,
+      viewPosition: 0.1,
     });
     setCurrentAyah(ayahNum);
   }, []);
@@ -224,12 +270,13 @@ export default function SurahScreen() {
           isLast={index === (data?.ayahs.length ?? 0) - 1}
           bookmarked={checkBookmarked(surahNumber, item.numberInSurah)}
           isCurrentlyPlaying={isThisPlaying}
+          isResumeTarget={!!resumedAyah && item.numberInSurah === resumedAyah}
           onBookmark={() => toggleBookmark(item)}
           onPlay={() => handlePlayAyah(item)}
         />
       );
     },
-    [data?.ayahs.length, checkBookmarked, toggleBookmark, currentTrack, surahNumber, isPlaying, handlePlayAyah],
+    [data?.ayahs.length, checkBookmarked, toggleBookmark, currentTrack, surahNumber, isPlaying, handlePlayAyah, resumedAyah],
   );
 
   // ── Picker data ───────────────────────────────────────────────────────────────
@@ -304,10 +351,17 @@ export default function SurahScreen() {
             viewabilityConfig={viewabilityConfig.current}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
+            // Estimated item height — lets scrollToIndex reach un-rendered items
+            getItemLayout={(_, index) => ({
+              length: AYAH_ESTIMATED_HEIGHT,
+              offset: AYAH_ESTIMATED_HEIGHT * index,
+              index,
+            })}
             onScrollToIndexFailed={info => {
+              // Fallback: scroll to approximate offset then retry after render
               flatListRef.current?.scrollToOffset({
                 offset: info.averageItemLength * info.index,
-                animated: true,
+                animated: false,
               });
             }}
             initialNumToRender={10}
@@ -317,8 +371,6 @@ export default function SurahScreen() {
           />
         )}
       </View>
-
-      <SafeAreaView edges={['bottom']} className="bg-background" />
 
       <PickerModal
         visible={surahPickerVisible}

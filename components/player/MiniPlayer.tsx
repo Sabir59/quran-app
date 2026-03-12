@@ -2,18 +2,18 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
-import { useState } from 'react';
 import { HOME_COLORS } from '@/constants/home';
 import { useAudioPlayer } from '@/context/AudioPlayerContext';
 import { FullPlayerModal } from './FullPlayerModal';
 
 export function MiniPlayer() {
-  const { currentTrack, isPlaying, isLoading, playlist, currentIndex, playPause, next, stop } =
-    useAudioPlayer();
+  const {
+    currentTrack, isPlaying, isLoading, playlist, currentIndex, playPause, next, stop,
+    playerModalVisible, openPlayerModal, closePlayerModal,
+  } = useAudioPlayer();
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const [fullPlayerVisible, setFullPlayerVisible] = useState(false);
 
   if (!currentTrack) return null;
 
@@ -23,7 +23,7 @@ export function MiniPlayer() {
   return (
     <>
       <Pressable
-        onPress={() => setFullPlayerVisible(true)}
+        onPress={openPlayerModal}
         style={[styles.container, { bottom: insets.bottom + 8 }]}
         className="bg-card"
       >
@@ -77,8 +77,8 @@ export function MiniPlayer() {
       </Pressable>
 
       <FullPlayerModal
-        visible={fullPlayerVisible}
-        onDismiss={() => setFullPlayerVisible(false)}
+        visible={playerModalVisible}
+        onDismiss={closePlayerModal}
         karaoke={true}
       />
     </>
