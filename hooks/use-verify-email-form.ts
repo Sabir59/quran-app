@@ -2,14 +2,16 @@ import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@/context/AuthContext';
+import { useVerifyOtp } from '@/hooks/api/useVerifyOtp';
+import { useForgotPassword } from '@/hooks/api/useForgotPassword';
 import { verifyOtpSchema } from '@/schemas/auth.schemas';
 import type { VerifyOtpFormValues } from '@/schemas/auth.schemas';
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
 export function useVerifyEmailForm(email: string) {
-  const { verifyOtp, forgotPassword } = useAuth();
+  const verifyOtpMutation = useVerifyOtp();
+  const forgotPasswordMutation = useForgotPassword();
   const [serverError, setServerError] = useState<string | null>(null);
   const [isResending, setIsResending] = useState(false);
   const [countdown, setCountdown] = useState(RESEND_COOLDOWN_SECONDS);
@@ -20,7 +22,6 @@ export function useVerifyEmailForm(email: string) {
     mode: 'onChange',
   });
 
-  // Countdown timer for resend cooldown
   useEffect(() => {
     if (countdown <= 0) return;
     const t = setTimeout(() => setCountdown(c => c - 1), 1000);
@@ -29,11 +30,11 @@ export function useVerifyEmailForm(email: string) {
 
   const handleSubmit = form.handleSubmit(async (values) => {
     setServerError(null);
-    const result = await verifyOtp({ email, code: values.code });
-    if (result.success) {
+    try {
+      await verifyOtpMutation.mutateAsync({ email, code: values.code });
       router.replace('/(main)/home');
-    } else {
-      setServerError(result.error ?? 'Invalid code. Please try again.');
+    } catch (err) {
+      setServerError(err instanceof Error ? err.message : 'Invalid code. Please try again.');
     }
   });
 
@@ -41,12 +42,12 @@ export function useVerifyEmailForm(email: string) {
     if (countdown > 0 || isResending) return;
     setIsResending(true);
     setServerError(null);
-    const result = await forgotPassword({ email });
-    if (result.success) {
+    try {
+      await forgotPasswordMutation.mutateAsync({ email });
       setCountdown(RESEND_COOLDOWN_SECONDS);
       form.reset();
-    } else {
-      setServerError(result.error ?? 'Failed to resend code.');
+    } catch (err) {
+      setServerError(err instanceof Error ? err.message : 'Failed to resend code.');
     }
     setIsResending(false);
   }
@@ -57,7 +58,7 @@ export function useVerifyEmailForm(email: string) {
     isResending,
     countdown,
     canResend: countdown <= 0,
-    isLoading: form.formState.isSubmitting,
+    isLoading: verifyOtpMutation.isPending,
     handleSubmit,
     handleResend,
   };

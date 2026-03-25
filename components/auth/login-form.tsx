@@ -1,4 +1,4 @@
-import { Feather } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { Controller } from 'react-hook-form';
 import { Pressable, View } from 'react-native';
@@ -41,7 +41,7 @@ export function LoginForm({
             autoComplete="email"
             returnKeyType="next"
             error={fieldState.error?.message}
-            rightIcon={<Feather name="mail" size={ICON_SIZE} color={ICON_COLOR} />}
+            rightIcon={<Ionicons name="mail-outline" size={ICON_SIZE} color={ICON_COLOR} />}
           />
         )}
       />
@@ -67,7 +67,7 @@ export function LoginForm({
                 accessibilityRole="button"
                 accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
               >
-                <Feather name={showPassword ? 'eye-off' : 'eye'} size={ICON_SIZE} color={ICON_COLOR} />
+                <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={ICON_SIZE} color={ICON_COLOR} />
               </Pressable>
             }
           />

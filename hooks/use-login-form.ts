@@ -3,13 +3,15 @@ import { router } from 'expo-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/context/AuthContext';
+import { useLogin } from '@/hooks/api/useLogin';
 import { loginSchema } from '@/schemas/auth.schemas';
 import type { LoginFormValues } from '@/schemas/auth.schemas';
 
 export function useLoginForm() {
-  const { login, loginAsGuest } = useAuth();
-  const [showPassword, setShowPassword] = useState(false);
+  const { loginAsGuest } = useAuth();
+  const loginMutation = useLogin();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -19,14 +21,14 @@ export function useLoginForm() {
 
   const handleSubmit = form.handleSubmit(async (values) => {
     setServerError(null);
-    const result = await login({
-      email: values.email.trim().toLowerCase(),
-      password: values.password,
-    });
-    if (result.success) {
+    try {
+      await loginMutation.mutateAsync({
+        email: values.email.trim().toLowerCase(),
+        password: values.password,
+      });
       router.replace('/(main)/home');
-    } else {
-      setServerError(result.error ?? 'Login failed. Please try again.');
+    } catch (err) {
+      setServerError(err instanceof Error ? err.message : 'Login failed. Please try again.');
     }
   });
 
@@ -40,7 +42,7 @@ export function useLoginForm() {
     showPassword,
     setShowPassword,
     serverError,
-    isLoading: form.formState.isSubmitting,
+    isLoading: loginMutation.isPending,
     handleSubmit,
     handleGuestLogin,
   };

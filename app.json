@@ -55,9 +55,7 @@
           "microphonePermission": false
         }
       ],
-      "expo-font",
-      "expo-web-browser",
-      "expo-image"
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

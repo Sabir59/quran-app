@@ -1,12 +1,12 @@
 /**
  * AuthContext.tsx — Global auth state machine
  *
- * Provides auth state and actions to the entire app.
- * All navigation logic lives in the form hooks / AuthGuard, not here.
- * This file never needs to change when the backend is plugged in — only
- * services/authService.ts changes.
+ * Owns auth state and session persistence only.
+ * Network calls live in api/auth.ts.
+ * Mutations (login, register, OTP, forgotPassword) live in hooks/api/.
  */
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {
   createContext,
   useCallback,
@@ -15,17 +15,38 @@ import React, {
   useReducer,
 } from 'react';
 
-import { authService, loadPersistedSession } from '@/services/authService';
 import type {
-  AuthActionResult,
   AuthSession,
   AuthStatus,
   AuthUser,
-  ForgotPasswordPayload,
-  LoginPayload,
-  RegisterPayload,
-  VerifyOtpPayload,
 } from '@/types/auth';
+
+// ─── Session storage ──────────────────────────────────────────────────────────
+
+const SESSION_KEY = '@quran_app/auth_session';
+
+async function persistSession(session: AuthSession): Promise<void> {
+  await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(session));
+}
+
+async function loadPersistedSession(): Promise<AuthSession | null> {
+  try {
+    const raw = await AsyncStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const session: AuthSession = JSON.parse(raw);
+    if (Date.now() > session.expiresAt) {
+      await AsyncStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    return session;
+  } catch {
+    return null;
+  }
+}
+
+async function clearPersistedSession(): Promise<void> {
+  await AsyncStorage.removeItem(SESSION_KEY);
+}
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -68,38 +89,15 @@ function reducer(state: State, action: Action): State {
 // ─── Context interface ────────────────────────────────────────────────────────
 
 interface AuthContextValue {
-  // ── Derived state ──
   status: AuthStatus;
   user: AuthUser | null;
-  /** true while reading the persisted session on app start */
   isInitializing: boolean;
-  /** true when signed in with a real account */
   isAuthenticated: boolean;
-  /** true when using the app without an account */
   isGuest: boolean;
-
-  // ── Actions ──
-  /** Sign in. Returns { success, error } — navigate on success in the caller. */
-  login: (payload: LoginPayload) => Promise<AuthActionResult>;
-
-  /**
-   * Create a new account.
-   * Returns { success, email } — navigate to OTP screen on success.
-   */
-  register: (payload: RegisterPayload) => Promise<AuthActionResult & { email?: string }>;
-
-  /** Enter the app without signing in. Navigates immediately (no async). */
+  /** Called by mutation hooks after a successful login / OTP verify. */
+  setSession: (session: AuthSession) => Promise<void>;
+  /** Enter the app without signing in. */
   loginAsGuest: () => void;
-
-  /** Request a password-reset OTP. Navigate to OTP screen on success. */
-  forgotPassword: (payload: ForgotPasswordPayload) => Promise<AuthActionResult>;
-
-  /**
-   * Verify a 6-digit OTP (registration OR password reset).
-   * On success, session is set and the user is authenticated.
-   */
-  verifyOtp: (payload: VerifyOtpPayload) => Promise<AuthActionResult>;
-
   /** Sign out and clear all local session data. */
   logout: () => Promise<void>;
 }
@@ -113,87 +111,25 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
 
-  // Restore persisted session on app start
   useEffect(() => {
     loadPersistedSession()
       .then(session => {
-        if (session) {
-          dispatch({ type: 'SET_SESSION', payload: session });
-        } else {
-          dispatch({ type: 'SET_UNAUTHENTICATED' });
-        }
+        dispatch(session ? { type: 'SET_SESSION', payload: session } : { type: 'SET_UNAUTHENTICATED' });
       })
-      .catch(() => {
-        dispatch({ type: 'SET_UNAUTHENTICATED' });
-      });
+      .catch(() => dispatch({ type: 'SET_UNAUTHENTICATED' }));
   }, []);
 
-  const login = useCallback(async (payload: LoginPayload): Promise<AuthActionResult> => {
-    try {
-      const session = await authService.login(payload);
-      dispatch({ type: 'SET_SESSION', payload: session });
-      return { success: true };
-    } catch (err) {
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : 'Login failed. Please try again.',
-      };
-    }
+  const setSession = useCallback(async (session: AuthSession) => {
+    await persistSession(session);
+    dispatch({ type: 'SET_SESSION', payload: session });
   }, []);
-
-  const register = useCallback(
-    async (payload: RegisterPayload): Promise<AuthActionResult & { email?: string }> => {
-      try {
-        const { email } = await authService.register(payload);
-        // Don't set session yet — user must verify OTP first
-        return { success: true, email };
-      } catch (err) {
-        return {
-          success: false,
-          error: err instanceof Error ? err.message : 'Registration failed. Please try again.',
-        };
-      }
-    },
-    [],
-  );
 
   const loginAsGuest = useCallback(() => {
     dispatch({ type: 'SET_GUEST' });
   }, []);
 
-  const forgotPassword = useCallback(
-    async (payload: ForgotPasswordPayload): Promise<AuthActionResult> => {
-      try {
-        await authService.forgotPassword(payload);
-        return { success: true };
-      } catch (err) {
-        return {
-          success: false,
-          error: err instanceof Error ? err.message : 'Failed to send code. Please try again.',
-        };
-      }
-    },
-    [],
-  );
-
-  const verifyOtp = useCallback(
-    async (payload: VerifyOtpPayload): Promise<AuthActionResult> => {
-      try {
-        const session = await authService.verifyOtp(payload);
-        dispatch({ type: 'SET_SESSION', payload: session });
-        return { success: true };
-      } catch (err) {
-        return {
-          success: false,
-          error: err instanceof Error ? err.message : 'Invalid code. Please try again.',
-        };
-      }
-    },
-    [],
-  );
-
   const logout = useCallback(async () => {
-    await authService.logout();
+    await clearPersistedSession();
     dispatch({ type: 'SET_UNAUTHENTICATED' });
   }, []);
 
@@ -203,11 +139,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isInitializing: state.status === 'initializing',
     isAuthenticated: state.status === 'authenticated',
     isGuest: state.status === 'guest',
-    login,
-    register,
+    setSession,
     loginAsGuest,
-    forgotPassword,
-    verifyOtp,
     logout,
   };
 
@@ -218,8 +151,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error('useAuth must be used within <AuthProvider>');
-  }
+  if (!ctx) throw new Error('useAuth must be used within <AuthProvider>');
   return ctx;
 }

@@ -1,0 +1,9 @@
+{
+  "name": "JoinBarber",
+  "displayName": "JoinBarber",
+  "extra": {
+    "eas": {
+      "projectId": "343080f8-a9b1-44ca-86ed-9cbb83e3125e"
+    }
+  }
+}

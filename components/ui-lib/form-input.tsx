@@ -2,6 +2,7 @@ import { cn } from '@/lib/utils';
 import type { ReactNode } from 'react';
 import type { TextInputProps } from 'react-native';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useColorScheme } from 'nativewind';
 import { Text } from '@/components/ui/text';
 
 interface FormInputProps extends TextInputProps {
@@ -22,26 +23,29 @@ export function FormInput({
   className,
   ...props
 }: FormInputProps) {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   return (
     <View
       className={cn(containerClassName)}
       style={label ? styles.labeledWrapper : undefined}
     >
       {label ? (
-        <View style={styles.labelContainer}>
+        <View style={[styles.labelContainer, { backgroundColor: isDark ? '#0a0a0f' : 'white' }]}>
           <Text style={styles.labelText}>{label}</Text>
         </View>
       ) : null}
 
       <View
         className={cn(
-          'flex-row items-center h-14 rounded-lg border border-border bg-white overflow-hidden',
+          'flex-row items-center h-14 rounded-lg border border-border bg-background overflow-hidden',
           error && 'border-destructive',
         )}
       >
         <TextInput
           className={cn('flex-1 h-full px-4 text-sm text-foreground', className)}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={isDark ? '#6B7280' : '#9CA3AF'}
           {...props}
         />
         {rightIcon && (
@@ -72,7 +76,6 @@ const styles = StyleSheet.create({
     top: -10,
     left: 12,
     zIndex: 1,
-    backgroundColor: 'white',
     paddingHorizontal: 4,
   },
   labelText: { fontSize: 11, color: '#9CA3AF', lineHeight: 16 },

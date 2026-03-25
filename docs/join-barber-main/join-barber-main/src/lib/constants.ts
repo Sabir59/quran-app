@@ -1,0 +1,38 @@
+// API Configuration
+export const API_CONFIG = {
+  BASE_URL: 'https://joinbarber.com/api',
+  TIMEOUT: 10000,
+  HEADERS: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  },
+};
+
+// User Roles
+export const USER_ROLES = {
+  CUSTOMER: 'Customer',
+  SHOP: 'Shop',
+  ADMIN: 'Admin',
+  BARBER: 'Barber',
+} as const;
+
+export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];
+
+export const NAV_THEME = {
+  light: {
+    background: 'hsl(0 0% 100%)', // background
+    border: 'hsl(240 5.9% 90%)', // border
+    card: 'hsl(0 0% 100%)', // card
+    notification: 'hsl(0 84.2% 60.2%)', // destructive
+    primary: 'hsl(240 5.9% 10%)', // primary
+    text: 'hsl(240 10% 3.9%)', // foreground
+  },
+  dark: {
+    background: 'hsl(240 10% 3.9%)', // background
+    border: 'hsl(240 3.7% 15.9%)', // border
+    card: 'hsl(240 10% 3.9%)', // card
+    notification: 'hsl(0 72% 51%)', // destructive
+    primary: 'hsl(0 0% 98%)', // primary
+    text: 'hsl(0 0% 98%)', // foreground
+  },
+};

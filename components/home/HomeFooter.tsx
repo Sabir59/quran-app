@@ -1,29 +1,29 @@
-import { AntDesign, Feather } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { HOME_COLORS, SOCIAL_LINKS } from '@/constants/home';
 
 const SOCIAL_ITEMS = [
   {
     key: 'linkedin',
-    icon: <AntDesign name="linkedin-square" size={22} color="rgba(255,255,255,0.85)" />,
+    icon: <Ionicons name="logo-linkedin" size={22} color="rgba(255,255,255,0.85)" />,
     label: 'LinkedIn',
     url: SOCIAL_LINKS.linkedin,
   },
   {
     key: 'facebook',
-    icon: <Feather name="facebook" size={22} color="rgba(255,255,255,0.85)" />,
+    icon: <Ionicons name="logo-facebook" size={22} color="rgba(255,255,255,0.85)" />,
     label: 'Facebook',
     url: SOCIAL_LINKS.facebook,
   },
   {
     key: 'instagram',
-    icon: <Feather name="instagram" size={22} color="rgba(255,255,255,0.85)" />,
+    icon: <Ionicons name="logo-instagram" size={22} color="rgba(255,255,255,0.85)" />,
     label: 'Instagram',
     url: SOCIAL_LINKS.instagram,
   },
   {
     key: 'x',
-    icon: <AntDesign name="twitter" size={22} color="rgba(255,255,255,0.85)" />,
+    icon: <Ionicons name="logo-twitter" size={22} color="rgba(255,255,255,0.85)" />,
     label: 'X',
     url: SOCIAL_LINKS.x,
   },

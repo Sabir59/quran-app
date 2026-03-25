@@ -1,4 +1,4 @@
-import { Feather } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { Controller } from 'react-hook-form';
 import { View } from 'react-native';
@@ -37,7 +37,7 @@ export function ForgotPasswordForm({
             returnKeyType="done"
             onSubmitEditing={handleSubmit}
             error={fieldState.error?.message}
-            rightIcon={<Feather name="mail" size={ICON_SIZE} color={ICON_COLOR} />}
+            rightIcon={<Ionicons name="mail-outline" size={ICON_SIZE} color={ICON_COLOR} />}
           />
         )}
       />

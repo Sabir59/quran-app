@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { router } from 'expo-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@/context/AuthContext';
+import { useForgotPassword } from '@/hooks/api/useForgotPassword';
 import { forgotPasswordSchema } from '@/schemas/auth.schemas';
 import type { ForgotPasswordFormValues } from '@/schemas/auth.schemas';
 
 export function useForgotPasswordForm() {
-  const { forgotPassword } = useAuth();
+  const forgotPasswordMutation = useForgotPassword();
   const [serverError, setServerError] = useState<string | null>(null);
 
   const form = useForm<ForgotPasswordFormValues>({
@@ -18,21 +18,19 @@ export function useForgotPasswordForm() {
 
   const handleSubmit = form.handleSubmit(async (values) => {
     setServerError(null);
-    const result = await forgotPassword({ email: values.email.trim().toLowerCase() });
-    if (result.success) {
-      router.push({
-        pathname: '/(auth)/verify-email',
-        params: { email: values.email.trim().toLowerCase() },
-      });
-    } else {
-      setServerError(result.error ?? 'Failed to send code. Please try again.');
+    const email = values.email.trim().toLowerCase();
+    try {
+      await forgotPasswordMutation.mutateAsync({ email });
+      router.push({ pathname: '/(auth)/verify-email', params: { email } });
+    } catch (err) {
+      setServerError(err instanceof Error ? err.message : 'Failed to send code. Please try again.');
     }
   });
 
   return {
     form,
     serverError,
-    isLoading: form.formState.isSubmitting,
+    isLoading: forgotPasswordMutation.isPending,
     handleSubmit,
   };
 }
