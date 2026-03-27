@@ -3,6 +3,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import { useCallback, useState } from 'react';
 import {
+  Image,
   Pressable,
   ScrollView,
   StatusBar,
@@ -14,6 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { HOME_COLORS } from '@/constants/home';
 import { useProgress } from '@/context/ProgressContext';
+import { useUserProfile } from '@/context/UserProfileContext';
+import { useAuth } from '@/context/AuthContext';
 import { resumeService } from '@/services/resumeService';
 import type { ResumeState } from '@/services/resumeService';
 import { scrollTarget } from '@/services/scrollTarget';
@@ -23,19 +26,24 @@ const TOTAL_SURAHS = 114;
 
 // ─── Week Activity Strip ──────────────────────────────────────────────────────
 
-const DAY_LABELS = ['T', 'W', 'T', 'F', 'S', 'S', 'M'];
+const DAY_INITIALS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']; // Sun=0 … Sat=6
 
 function WeekActivityStrip({ activity }: { activity: boolean[] }) {
+  // activity[0]=today … activity[6]=6 days ago; reverse so display is left=oldest, right=today
   const reversed = [...activity].reverse();
-  const labels = [...DAY_LABELS].reverse();
   return (
     <View style={strip.row}>
-      {reversed.map((active, i) => (
-        <View key={i} style={strip.cell}>
-          <View style={[strip.dot, { backgroundColor: active ? TEAL : 'transparent', borderColor: active ? TEAL : '#9CA3AF' }]} />
-          <Text style={strip.label}>{labels[i]}</Text>
-        </View>
-      ))}
+      {reversed.map((active, i) => {
+        const daysBack = 6 - i; // i=0 → 6 days ago, i=6 → today
+        const date = new Date(Date.now() - daysBack * 86_400_000);
+        const label = DAY_INITIALS[date.getDay()];
+        return (
+          <View key={i} style={strip.cell}>
+            <View style={[strip.dot, { backgroundColor: active ? TEAL : 'transparent', borderColor: active ? TEAL : '#9CA3AF' }]} />
+            <Text style={strip.label}>{label}</Text>
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -159,7 +167,12 @@ export default function ProgressScreen() {
   const isDark = colorScheme === 'dark';
   const headerBg = isDark ? '#0a0a0f' : TEAL;
 
-  const { streak, lastRead, weekActivity, surahsVisited, totalListeningSeconds } = useProgress();
+  const { streak, lastRead, weekActivity, surahsVisited, totalListeningSeconds, visits } = useProgress();
+  const { isGuest } = useAuth();
+  const { name, photoURL, cloudStats } = useUserProfile();
+  const avatarInitials = isGuest
+    ? '?'
+    : (name || 'U').split(' ').slice(0, 2).map((w: string) => w[0]?.toUpperCase() ?? '').join('');
   const [resumeState, setResumeState] = useState<ResumeState | null>(null);
 
   // Reload resume state every time this tab comes into focus
@@ -183,7 +196,13 @@ export default function ProgressScreen() {
     }, [lastRead]),
   );
 
-  const readCount = surahsVisited.length;
+  // When local AsyncStorage is empty (new device), fall back to Firestore cloud stats
+  const hasLocalData = visits.length > 0;
+  const displayStreak = hasLocalData ? streak : (cloudStats?.streak ?? 0);
+  const displaySurahsRead = hasLocalData ? surahsVisited.length : (cloudStats?.surahsRead ?? 0);
+  const displayListening = hasLocalData ? totalListeningSeconds : (cloudStats?.totalListeningSeconds ?? 0);
+
+  const readCount = displaySurahsRead;
   const completionPct = Math.round((readCount / TOTAL_SURAHS) * 100);
 
   return (
@@ -197,13 +216,20 @@ export default function ProgressScreen() {
             <View>
               <Text style={screenStyles.headerSub}>Your Journey</Text>
               <Text style={screenStyles.headerTitle}>
-                {streak > 0 ? `${streak} Day Streak 🔥` : 'Start Your Streak'}
+                {displayStreak > 0 ? `${displayStreak} Day Streak 🔥` : 'Start Your Streak'}
               </Text>
             </View>
-            <View style={screenStyles.streakBadge}>
-              <Text style={screenStyles.streakNum}>{streak}</Text>
-              <Text style={screenStyles.streakFire}>🔥</Text>
-            </View>
+            <Pressable
+              onPress={() => router.push('/(main)/profile')}
+              style={screenStyles.avatar}
+              hitSlop={8}
+            >
+              {photoURL ? (
+                <Image source={{ uri: photoURL }} style={screenStyles.avatarImage} />
+              ) : (
+                <Text style={screenStyles.avatarText}>{avatarInitials}</Text>
+              )}
+            </Pressable>
           </View>
         </SafeAreaView>
 
@@ -221,9 +247,9 @@ export default function ProgressScreen() {
 
             {/* Stats */}
             <View style={screenStyles.statsRow}>
-              <StatCard value={`${readCount}`} label="Surahs" />
-              <StatCard value={`${streak}`} label="Day Streak" />
-              <StatCard value={formatListening(totalListeningSeconds)} label="Listened" />
+              <StatCard value={`${displaySurahsRead}`} label="Surahs" />
+              <StatCard value={`${displayStreak}`} label="Day Streak" />
+              <StatCard value={formatListening(displayListening)} label="Listened" />
             </View>
 
             {/* Surah completion */}
@@ -266,6 +292,14 @@ const screenStyles = StyleSheet.create({
   streakNum: { color: 'white', fontSize: 16, fontWeight: '800', lineHeight: 18 },
   streakFire: { fontSize: 12, lineHeight: 14 },
   sheet: { overflow: 'hidden' },
+  avatar: {
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.55)',
+    alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+  },
+  avatarImage: { width: 44, height: 44, borderRadius: 22 },
+  avatarText: { color: 'white', fontSize: 14, fontWeight: '700' },
   scrollContent: { padding: 16, gap: 12, paddingBottom: 32 },
   statsRow: { flexDirection: 'row', gap: 10 },
   completionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

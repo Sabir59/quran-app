@@ -5,11 +5,13 @@ import {
   Image,
   InteractionManager,
   Pressable,
+  Share,
   StatusBar,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,6 +26,9 @@ import { useBookmarks } from '@/context/BookmarksContext';
 import { useAudioPlayer } from '@/context/AudioPlayerContext';
 import type { PlayerTrack } from '@/context/AudioPlayerContext';
 import { useProgress } from '@/context/ProgressContext';
+import { useUserProfile } from '@/context/UserProfileContext';
+import { useAuth } from '@/context/AuthContext';
+import { useSettings } from '@/lib/settings';
 import { resumeService } from '@/services/resumeService';
 import type { ResumeState } from '@/services/resumeService';
 import { scrollTarget } from '@/services/scrollTarget';
@@ -46,10 +51,21 @@ export default function SurahScreen() {
   const resumeAyah = Number(ayahParam) || 0;
   const resumePositionMs = Number(positionMsParam) || 0;
 
+  const { reciter, translationEdition, name: profileName, photoURL } = useUserProfile();
+  const { isGuest } = useAuth();
+  const { mushaf } = useSettings();
+
+  const avatarInitials = isGuest
+    ? '?'
+    : (profileName || 'U').split(' ').slice(0, 2).map((w: string) => w[0]?.toUpperCase() ?? '').join('');
+  const translationEnabled = translationEdition !== 'off';
+
   const { data, isLoading, isError, refetch } = useSurahDetail({
     surahNumber,
-    mushaf: 'uthmani',
-    translationEnabled: true,
+    mushaf,
+    translationEnabled,
+    translationEdition: translationEnabled ? translationEdition : undefined,
+    reciter,
   });
   const { data: surahList } = useSurahList();
   const { isBookmarked: checkBookmarked, addBookmark, removeBookmark } = useBookmarks();
@@ -241,6 +257,40 @@ export default function SurahScreen() {
     [checkBookmarked, surahNumber, addBookmark, removeBookmark],
   );
 
+  // ── Share ─────────────────────────────────────────────────────────────────────
+  const handleShare = useCallback(
+    async (ayah: AyahCombined) => {
+      const surahName = data?.surah.englishName ?? name ?? '';
+      const lines: string[] = [
+        ayah.arabic,
+        ayah.transliteration ? `(${ayah.transliteration})` : '',
+        ayah.translation ? `"${ayah.translation}"` : '',
+        `— ${surahName} ${surahNumber}:${ayah.numberInSurah}`,
+      ].filter(Boolean);
+      try {
+        await Share.share({ message: lines.join('\n') });
+      } catch {
+        // user cancelled or dismissed — nothing to do
+      }
+    },
+    [data?.surah.englishName, name, surahNumber],
+  );
+
+  // ── Copy ──────────────────────────────────────────────────────────────────────
+  const handleCopy = useCallback(
+    async (ayah: AyahCombined) => {
+      const surahName = data?.surah.englishName ?? name ?? '';
+      const lines: string[] = [
+        ayah.arabic,
+        ayah.transliteration ? `(${ayah.transliteration})` : '',
+        ayah.translation ? `"${ayah.translation}"` : '',
+        `— ${surahName} ${surahNumber}:${ayah.numberInSurah}`,
+      ].filter(Boolean);
+      await Clipboard.setStringAsync(lines.join('\n'));
+    },
+    [data?.surah.englishName, name, surahNumber],
+  );
+
   // ── Play ──────────────────────────────────────────────────────────────────────
   const handlePlayAyah = useCallback(
     (ayah: AyahCombined) => {
@@ -273,10 +323,12 @@ export default function SurahScreen() {
           isResumeTarget={!!resumedAyah && item.numberInSurah === resumedAyah}
           onBookmark={() => toggleBookmark(item)}
           onPlay={() => handlePlayAyah(item)}
+          onShare={() => handleShare(item)}
+          onCopy={() => handleCopy(item)}
         />
       );
     },
-    [data?.ayahs.length, checkBookmarked, toggleBookmark, currentTrack, surahNumber, isPlaying, handlePlayAyah, resumedAyah],
+    [data?.ayahs.length, checkBookmarked, toggleBookmark, currentTrack, surahNumber, isPlaying, handlePlayAyah, handleShare, handleCopy, resumedAyah],
   );
 
   // ── Picker data ───────────────────────────────────────────────────────────────
@@ -322,9 +374,18 @@ export default function SurahScreen() {
               <Image source={logoAlQuran} style={styles.logo} resizeMode="contain" />
             </View>
 
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>AY</Text>
-            </View>
+            <Pressable
+              onPress={() => router.push('/(main)/profile')}
+              hitSlop={8}
+            >
+              {photoURL ? (
+                <Image source={{ uri: photoURL }} style={styles.avatar} />
+              ) : (
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>{avatarInitials}</Text>
+                </View>
+              )}
+            </Pressable>
           </View>
         </SafeAreaView>
 

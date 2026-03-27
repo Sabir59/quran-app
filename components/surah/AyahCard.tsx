@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { useColorScheme } from 'nativewind';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +13,8 @@ interface AyahCardProps {
   isResumeTarget?: boolean;
   onBookmark: () => void;
   onPlay: () => void;
+  onShare: () => void;
+  onCopy: () => void;
 }
 
 export const AyahCard = memo(function AyahCard({
@@ -23,13 +25,22 @@ export const AyahCard = memo(function AyahCard({
   isResumeTarget = false,
   onBookmark,
   onPlay,
+  onShare,
+  onCopy,
 }: AyahCardProps) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
 
-  // Colors computed from scheme — no hardcoding
   const activeBg = isDark ? 'rgba(18,196,190,0.08)' : '#F0FFFE';
-  const borderColor = isDark ? '#252628' : '#E5E7EB'; // matches CSS --border variable
+  const borderColor = isDark ? '#252628' : '#E5E7EB';
+
+  // Brief "copied" flash on the copy icon
+  const [copied, setCopied] = useState(false);
+  function handleCopy() {
+    onCopy();
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
 
   // Resume target: pulse teal border then fade away
   const pulseAnim = useRef(new Animated.Value(0)).current;
@@ -73,7 +84,7 @@ export const AyahCard = memo(function AyahCard({
         {ayah.arabic}
       </Text>
 
-      {/* Transliteration — teal brand color on both light/dark */}
+      {/* Transliteration */}
       {ayah.transliteration ? (
         <Text style={styles.transliteration}>{ayah.transliteration}</Text>
       ) : null}
@@ -87,6 +98,7 @@ export const AyahCard = memo(function AyahCard({
 
       {/* Actions */}
       <View style={styles.actionsRow}>
+        {/* Play / Pause */}
         <Pressable onPress={onPlay} style={styles.actionBtn} hitSlop={8} accessibilityRole="button">
           <Ionicons
             name={isCurrentlyPlaying ? 'pause-circle' : 'play-circle'}
@@ -94,15 +106,34 @@ export const AyahCard = memo(function AyahCard({
             color={HOME_COLORS.teal}
           />
         </Pressable>
-        <Pressable style={styles.actionBtn} hitSlop={8}>
+
+        {/* Share */}
+        <Pressable
+          onPress={onShare}
+          style={styles.actionBtn}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Share ayah"
+        >
           <Ionicons name="share-social-outline" size={18} color={HOME_COLORS.teal} />
         </Pressable>
-        <Pressable style={styles.actionBtn} hitSlop={8}>
-          <Ionicons name="copy-outline" size={18} color={HOME_COLORS.teal} />
+
+        {/* Copy — flashes a checkmark for 1.5 s after copying */}
+        <Pressable
+          onPress={handleCopy}
+          style={styles.actionBtn}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Copy ayah"
+        >
+          <Ionicons
+            name={copied ? 'checkmark-outline' : 'copy-outline'}
+            size={18}
+            color={copied ? '#22C55E' : HOME_COLORS.teal}
+          />
         </Pressable>
-        <Pressable style={styles.actionBtn} hitSlop={8}>
-          <Ionicons name="albums-outline" size={18} color={HOME_COLORS.teal} />
-        </Pressable>
+
+        {/* Bookmark */}
         <Pressable
           onPress={onBookmark}
           style={styles.actionBtn}

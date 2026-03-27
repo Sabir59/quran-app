@@ -6,24 +6,15 @@ type ThemePref = 'light' | 'dark';
 
 type SettingsState = {
   mushaf: MushafStyle;
-  reciter: string;
-  translationEnabled: boolean;
-  translationEdition: string;
   fontScale: number; // 1 = base, can be 0.8..1.6
   theme: ThemePref;
   setMushaf: (m: MushafStyle) => void;
-  setReciter: (r: string) => void;
-  setTranslationEnabled: (v: boolean) => void;
-  setTranslationEdition: (e: string) => void;
   setFontScale: (n: number) => void;
   setTheme: (t: ThemePref) => void;
 };
 
-const DEFAULTS: Omit<SettingsState, 'setMushaf' | 'setReciter' | 'setTranslationEnabled' | 'setTranslationEdition' | 'setFontScale' | 'setTheme'> = {
+const DEFAULTS: Omit<SettingsState, 'setMushaf' | 'setFontScale' | 'setTheme'> = {
   mushaf: 'uthmani',
-  reciter: 'ar.alafasy',
-  translationEnabled: true,
-  translationEdition: 'en.asad',
   fontScale: 1,
   theme: 'light',
 };
@@ -60,9 +51,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       ...state,
       ready,
       setMushaf: (m) => setState((s) => ({ ...s, mushaf: m })),
-      setReciter: (r) => setState((s) => ({ ...s, reciter: r })),
-      setTranslationEnabled: (v) => setState((s) => ({ ...s, translationEnabled: v })),
-      setTranslationEdition: (e) => setState((s) => ({ ...s, translationEdition: e })),
       setFontScale: (n) => setState((s) => ({ ...s, fontScale: n })),
       setTheme: (t) => setState((s) => ({ ...s, theme: t })),
     }),

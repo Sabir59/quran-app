@@ -1,12 +1,12 @@
 /**
  * AuthContext.tsx — Global auth state machine
  *
- * Owns auth state and session persistence only.
- * Network calls live in api/auth.ts.
- * Mutations (login, register, OTP, forgotPassword) live in hooks/api/.
+ * Uses Firebase onAuthStateChanged as the single source of truth.
+ * AsyncStorage is only used to persist guest mode.
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import React, {
   createContext,
   useCallback,
@@ -14,39 +14,13 @@ import React, {
   useEffect,
   useReducer,
 } from 'react';
+import { auth } from '@/lib/firebase';
+import { buildSessionFromFirebaseUser } from '@/api/auth';
+import { ensureUserDocFields } from '@/api/user';
 
-import type {
-  AuthSession,
-  AuthStatus,
-  AuthUser,
-} from '@/types/auth';
+import type { AuthSession, AuthStatus, AuthUser } from '@/types/auth';
 
-// ─── Session storage ──────────────────────────────────────────────────────────
-
-const SESSION_KEY = '@quran_app/auth_session';
-
-async function persistSession(session: AuthSession): Promise<void> {
-  await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(session));
-}
-
-async function loadPersistedSession(): Promise<AuthSession | null> {
-  try {
-    const raw = await AsyncStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    const session: AuthSession = JSON.parse(raw);
-    if (Date.now() > session.expiresAt) {
-      await AsyncStorage.removeItem(SESSION_KEY);
-      return null;
-    }
-    return session;
-  } catch {
-    return null;
-  }
-}
-
-async function clearPersistedSession(): Promise<void> {
-  await AsyncStorage.removeItem(SESSION_KEY);
-}
+const GUEST_KEY = '@quran_app/guest_mode';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -94,11 +68,7 @@ interface AuthContextValue {
   isInitializing: boolean;
   isAuthenticated: boolean;
   isGuest: boolean;
-  /** Called by mutation hooks after a successful login / OTP verify. */
-  setSession: (session: AuthSession) => Promise<void>;
-  /** Enter the app without signing in. */
-  loginAsGuest: () => void;
-  /** Sign out and clear all local session data. */
+  loginAsGuest: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -112,24 +82,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
 
   useEffect(() => {
-    loadPersistedSession()
-      .then(session => {
-        dispatch(session ? { type: 'SET_SESSION', payload: session } : { type: 'SET_UNAUTHENTICATED' });
-      })
-      .catch(() => dispatch({ type: 'SET_UNAUTHENTICATED' }));
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // Signed-in user — clear any leftover guest flag
+        await AsyncStorage.removeItem(GUEST_KEY);
+        dispatch({ type: 'SET_SESSION', payload: buildSessionFromFirebaseUser(firebaseUser) });
+        // Migrate existing accounts — adds missing Firestore fields, no-op if already complete
+        ensureUserDocFields(
+          firebaseUser.uid,
+          firebaseUser.displayName ?? '',
+          firebaseUser.email ?? '',
+        ).catch(() => {});
+      } else {
+        // No Firebase user — check if guest mode is active
+        const isGuest = await AsyncStorage.getItem(GUEST_KEY);
+        if (isGuest === 'true') {
+          dispatch({ type: 'SET_GUEST' });
+        } else {
+          dispatch({ type: 'SET_UNAUTHENTICATED' });
+        }
+      }
+    });
+    return unsubscribe;
   }, []);
 
-  const setSession = useCallback(async (session: AuthSession) => {
-    await persistSession(session);
-    dispatch({ type: 'SET_SESSION', payload: session });
-  }, []);
-
-  const loginAsGuest = useCallback(() => {
+  const loginAsGuest = useCallback(async () => {
+    await AsyncStorage.setItem(GUEST_KEY, 'true');
     dispatch({ type: 'SET_GUEST' });
   }, []);
 
   const logout = useCallback(async () => {
-    await clearPersistedSession();
+    await AsyncStorage.removeItem(GUEST_KEY);
+    await signOut(auth);
     dispatch({ type: 'SET_UNAUTHENTICATED' });
   }, []);
 
@@ -139,7 +123,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isInitializing: state.status === 'initializing',
     isAuthenticated: state.status === 'authenticated',
     isGuest: state.status === 'guest',
-    setSession,
     loginAsGuest,
     logout,
   };

@@ -1,12 +1,10 @@
 import { useMutation } from '@tanstack/react-query';
-import { useAuth } from '@/context/AuthContext';
-import { verifyOtp } from '@/api/auth';
 import type { VerifyOtpPayload } from '@/types/auth';
 
+// OTP verification is not used in the Firebase auth flow.
+// This hook is kept as a stub for compatibility.
 export function useVerifyOtp() {
-  const { setSession } = useAuth();
   return useMutation({
-    mutationFn: (payload: VerifyOtpPayload) => verifyOtp(payload),
-    onSuccess: (session) => setSession(session),
+    mutationFn: (_payload: VerifyOtpPayload) => Promise.resolve(),
   });
 }

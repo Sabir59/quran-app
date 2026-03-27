@@ -12,6 +12,7 @@ import { AudioPlayerProvider, useAudioPlayer } from '@/context/AudioPlayerContex
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { BookmarksProvider } from '@/context/BookmarksContext';
 import { ProgressProvider, useProgress } from '@/context/ProgressContext';
+import { UserProfileProvider } from '@/context/UserProfileContext';
 import { MiniPlayer } from '@/components/player/MiniPlayer';
 import { SettingsProvider, useSettings } from '@/lib/settings';
 
@@ -70,13 +71,15 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <SettingsProvider>
         <AuthProvider>
-          <BookmarksProvider>
-            <ProgressProvider>
-              <AudioPlayerProvider>
-                <ThemedApp />
-              </AudioPlayerProvider>
-            </ProgressProvider>
-          </BookmarksProvider>
+          <UserProfileProvider>
+            <BookmarksProvider>
+              <ProgressProvider>
+                <AudioPlayerProvider>
+                  <ThemedApp />
+                </AudioPlayerProvider>
+              </ProgressProvider>
+            </BookmarksProvider>
+          </UserProfileProvider>
         </AuthProvider>
       </SettingsProvider>
     </QueryClientProvider>
@@ -179,11 +182,12 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     if (status === 'initializing') return;
 
     const inAuthGroup = segments[0] === '(auth)';
-    const isAuthed = status === 'authenticated' || status === 'guest';
 
-    if (isAuthed && inAuthGroup) {
+    // Only fully-authenticated users are blocked from re-entering auth screens.
+    // Guests are allowed to navigate to login to sign in for full access.
+    if (status === 'authenticated' && inAuthGroup) {
       router.replace('/(main)/home');
-    } else if (!isAuthed && !inAuthGroup) {
+    } else if (status === 'unauthenticated' && !inAuthGroup) {
       router.replace('/(auth)/login');
     }
   }, [status, segments]);

@@ -2,10 +2,11 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface HomeHeroProps {
   userInitials?: string;
+  photoURL?: string;
   onAvatarPress?: () => void;
 }
 
-export function HomeHero({ userInitials = 'AY', onAvatarPress }: HomeHeroProps) {
+export function HomeHero({ userInitials = '?', photoURL, onAvatarPress }: HomeHeroProps) {
   return (
     <View style={styles.container}>
       <View style={styles.topBar}>
@@ -20,9 +21,13 @@ export function HomeHero({ userInitials = 'AY', onAvatarPress }: HomeHeroProps) 
           onPress={onAvatarPress}
           style={styles.avatar}
           accessibilityRole="button"
-          accessibilityLabel={`User avatar ${userInitials}`}
+          accessibilityLabel="Go to profile"
         >
-          <Text style={styles.avatarText}>{userInitials}</Text>
+          {photoURL ? (
+            <Image source={{ uri: photoURL }} style={styles.avatarImage} />
+          ) : (
+            <Text style={styles.avatarText}>{userInitials}</Text>
+          )}
         </Pressable>
       </View>
     </View>
@@ -53,6 +58,12 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
   avatarText: {
     color: 'white',

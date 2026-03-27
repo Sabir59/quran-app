@@ -1,121 +1,115 @@
 /**
- * api/auth.ts — Auth network layer
+ * api/auth.ts — Auth network layer (Firebase)
  *
- * ┌─────────────────────────────────────────────────────────────────────────┐
- * │  THIS IS THE ONLY FILE YOU NEED TO CHANGE WHEN THE NESTJS BACKEND       │
- * │  IS READY. Replace each function body with the matching API call.       │
- * └─────────────────────────────────────────────────────────────────────────┘
- *
- * SWAP GUIDE:
- *   login          → POST /auth/login           body: { email, password }
- *   register       → POST /auth/register        body: { name, email, password }
- *   forgotPassword → POST /auth/forgot-password body: { email }
- *   verifyOtp      → POST /auth/verify-otp      body: { email, code }
- *   refreshToken   → POST /auth/refresh         body: { refreshToken }
- *   logout         → POST /auth/logout          body: { refreshToken } (optional)
+ * All auth operations go through Firebase Auth + Firestore.
  */
+
+import { auth, db } from "@/lib/firebase";
+import {
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  sendPasswordResetEmail,
+  signInWithCredential,
+  signInWithEmailAndPassword,
+  updateProfile,
+  type User as FirebaseUser,
+} from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 import type {
   AuthSession,
   ForgotPasswordPayload,
   LoginPayload,
   RegisterPayload,
-  VerifyOtpPayload,
-} from '@/types/auth';
+} from "@/types/auth";
 
-// ─── Mock helpers (delete when swapping to real API) ──────────────────────────
-
-function delay(ms: number) {
-  return new Promise<void>(resolve => setTimeout(resolve, ms));
-}
-
-function mockUuid(): string {
-  return Math.random().toString(36).slice(2) + Date.now().toString(36);
-}
+// ─── Helper ───────────────────────────────────────────────────────────────────
 
 function nameFromEmail(email: string): string {
   return email
-    .split('@')[0]
-    .replace(/[._-]/g, ' ')
-    .replace(/\b\w/g, c => c.toUpperCase());
+    .split("@")[0]
+    .replace(/[._-]/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function buildSession(name: string, email: string, emailVerified = true): AuthSession {
+export function buildSessionFromFirebaseUser(user: FirebaseUser): AuthSession {
   return {
     user: {
-      id: mockUuid(),
-      name,
-      email,
-      role: 'user',
-      emailVerified,
-      createdAt: new Date().toISOString(),
+      id: user.uid,
+      name: user.displayName ?? nameFromEmail(user.email ?? ""),
+      email: user.email ?? "",
+      avatar: user.photoURL ?? undefined,
+      role: "user",
+      emailVerified: user.emailVerified,
+      createdAt: user.metadata.creationTime ?? new Date().toISOString(),
     },
-    accessToken: `mock_access_${mockUuid()}`,
-    refreshToken: `mock_refresh_${mockUuid()}`,
-    expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
+    // Firebase manages tokens internally — these are placeholders
+    accessToken: "",
+    refreshToken: "",
+    expiresAt: Date.now() + 60 * 60 * 1000,
   };
 }
 
 // ─── Auth API ─────────────────────────────────────────────────────────────────
 
-/**
- * SWAP → POST /auth/login → returns { accessToken, refreshToken, expiresIn, user }
- * Demo error: password 'wrongpass' always fails — lets you test error UI.
- */
 export async function login(payload: LoginPayload): Promise<AuthSession> {
-  await delay(900);
-  if (payload.password === 'wrongpass') {
-    throw new Error('Invalid email or password.');
-  }
-  return buildSession(nameFromEmail(payload.email), payload.email);
+  const { user } = await signInWithEmailAndPassword(
+    auth,
+    payload.email,
+    payload.password,
+  );
+  return buildSessionFromFirebaseUser(user);
 }
 
-/**
- * SWAP → POST /auth/register → returns { message: 'OTP sent to email' }
- * Real API may throw if email is already registered.
- */
-export async function register(payload: RegisterPayload): Promise<{ email: string }> {
-  await delay(1000);
+export async function register(
+  payload: RegisterPayload,
+): Promise<{ email: string }> {
+  const { user } = await createUserWithEmailAndPassword(
+    auth,
+    payload.email,
+    payload.password,
+  );
+  await updateProfile(user, { displayName: payload.name });
+  // Create user document in Firestore
+  await setDoc(doc(db, "users", user.uid), {
+    name: payload.name,
+    email: payload.email,
+    createdAt: new Date().toISOString(),
+    bookmarks: [],
+    photoURL: "",
+    reciter: "ar.alafasy",
+    translationEdition: "en.asad",
+    streak: 0,
+    surahsRead: 0,
+    totalListeningSeconds: 0,
+  });
   return { email: payload.email };
 }
 
-/**
- * SWAP → POST /auth/forgot-password → returns { message: 'OTP sent' }
- * Real API may throw if email is not found.
- */
-export async function forgotPassword(payload: ForgotPasswordPayload): Promise<void> {
-  await delay(700);
-  void payload;
+export async function forgotPassword(
+  payload: ForgotPasswordPayload,
+): Promise<void> {
+  await sendPasswordResetEmail(auth, payload.email);
 }
 
-/**
- * SWAP → POST /auth/verify-otp → returns { accessToken, refreshToken, expiresIn, user }
- * Demo error: code '000000' always fails — lets you test error UI.
- */
-export async function verifyOtp(payload: VerifyOtpPayload): Promise<AuthSession> {
-  await delay(800);
-  if (payload.code === '000000') {
-    throw new Error('Invalid verification code. Please try again.');
+export async function googleSignIn(idToken: string): Promise<AuthSession> {
+  const credential = GoogleAuthProvider.credential(idToken);
+  const { user } = await signInWithCredential(auth, credential);
+  // Create Firestore doc if first time sign-in
+  const userDoc = await getDoc(doc(db, "users", user.uid));
+  if (!userDoc.exists()) {
+    await setDoc(doc(db, "users", user.uid), {
+      name: user.displayName ?? nameFromEmail(user.email ?? ""),
+      email: user.email ?? "",
+      createdAt: new Date().toISOString(),
+      bookmarks: [],
+      photoURL: user.photoURL ?? "",
+      reciter: "ar.alafasy",
+      translationEdition: "en.asad",
+      streak: 0,
+      surahsRead: 0,
+      totalListeningSeconds: 0,
+    });
   }
-  return buildSession(nameFromEmail(payload.email), payload.email, true);
-}
-
-/**
- * SWAP → POST /auth/refresh → returns { accessToken, refreshToken, expiresIn }
- * Called by the API client interceptor when a 401 is received.
- */
-export async function refreshToken(token: string): Promise<{ accessToken: string; expiresAt: number }> {
-  await delay(300);
-  void token;
-  return {
-    accessToken: `mock_access_${mockUuid()}`,
-    expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
-  };
-}
-
-/**
- * SWAP → POST /auth/logout body: { refreshToken } (invalidates server-side)
- */
-export async function logout(): Promise<void> {
-  await delay(200);
+  return buildSessionFromFirebaseUser(user);
 }

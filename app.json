@@ -15,11 +15,13 @@
     },
     "ios": {
       "bundleIdentifier": "com.millionaire.quranapp",
-      "supportsTablet": false
+      "supportsTablet": false,
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "package": "com.millionaire.quranapp",
       "versionCode": 1,
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
@@ -55,7 +57,15 @@
           "microphonePermission": false
         }
       ],
-      "expo-font"
+      "@react-native-google-signin/google-signin",
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Al-Quran to access your photos to set a profile picture.",
+          "cameraPermission": "Allow Al-Quran to use your camera to take a profile picture."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

@@ -8,6 +8,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useUserProfile } from '@/context/UserProfileContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -105,6 +106,7 @@ const ProgressContext = createContext<ProgressContextValue | null>(null);
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function ProgressProvider({ children }: { children: React.ReactNode }) {
+  const { syncProgress } = useUserProfile();
   const [visits, setVisits] = useState<VisitRecord[]>([]);
   const [totalListeningSeconds, setTotalListeningSeconds] = useState(0);
 
@@ -134,14 +136,24 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     visitsRef.current = trimmed;
     setVisits(trimmed);
     save({ visits: trimmed, totalListeningSeconds: listenSecsRef.current });
-  }, []);
+    syncProgress({
+      streak: computeStreak(trimmed),
+      surahsRead: new Set(trimmed.map(v => v.surahNumber)).size,
+      totalListeningSeconds: listenSecsRef.current,
+    });
+  }, [syncProgress]);
 
   const addListeningSeconds = useCallback((seconds: number) => {
     if (seconds <= 0) return;
     listenSecsRef.current += seconds;
     setTotalListeningSeconds(listenSecsRef.current);
     save({ visits: visitsRef.current, totalListeningSeconds: listenSecsRef.current });
-  }, []);
+    syncProgress({
+      streak: computeStreak(visitsRef.current),
+      surahsRead: new Set(visitsRef.current.map(v => v.surahNumber)).size,
+      totalListeningSeconds: listenSecsRef.current,
+    });
+  }, [syncProgress]);
 
   // Derived — memoised so consumers don't re-render unnecessarily
   const streak = useMemo(() => computeStreak(visits), [visits]);

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { Controller } from 'react-hook-form';
-import { Pressable, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { FormInput } from '@/components/ui-lib/form-input';
@@ -20,9 +20,13 @@ export function LoginForm({
   setShowPassword,
   serverError,
   isLoading,
+  isGoogleLoading,
   handleSubmit,
   handleGuestLogin,
+  handleGoogleSignIn,
 }: LoginFormProps) {
+  const busy = isLoading || isGoogleLoading;
+
   return (
     <View className="gap-4">
       {/* Email */}
@@ -88,12 +92,14 @@ export function LoginForm({
         <Text variant="small" className="text-destructive text-center">{serverError}</Text>
       ) : null}
 
-      <AuthSubmitButton label="Login" onPress={handleSubmit} isLoading={isLoading} />
+      <AuthSubmitButton label="Login" onPress={handleSubmit} isLoading={isLoading} disabled={busy} />
 
-      <Button variant="outline" onPress={handleGuestLogin} className="w-full h-[52px] rounded-xl border-border">
+      {/* Continue as Guest */}
+      <Button variant="outline" onPress={handleGuestLogin} disabled={busy} className="w-full h-[52px] rounded-xl border-border">
         <Text className="text-foreground font-medium text-base">Continue as Guest</Text>
       </Button>
 
+      {/* Register link */}
       <View className="flex-row items-center justify-center">
         <Text variant="muted">{"Don't have an account "}</Text>
         <Link href="/(auth)/register" asChild>
@@ -102,6 +108,30 @@ export function LoginForm({
           </Button>
         </Link>
       </View>
+
+      {/* Divider */}
+      <View className="flex-row items-center gap-3">
+        <View className="flex-1 h-px bg-border" />
+        <Text variant="muted" className="text-xs">or continue with</Text>
+        <View className="flex-1 h-px bg-border" />
+      </View>
+
+      {/* Google Sign-In */}
+      <Pressable
+        onPress={handleGoogleSignIn}
+        disabled={busy}
+        className="flex-row items-center justify-center gap-3 h-[52px] rounded-xl border border-border bg-card"
+        style={({ pressed }) => ({ opacity: pressed || busy ? 0.65 : 1 })}
+      >
+        {isGoogleLoading ? (
+          <ActivityIndicator size="small" color={TEAL_COLOR} />
+        ) : (
+          <>
+            <Ionicons name="logo-google" size={20} color="#DB4437" />
+            <Text className="text-foreground font-semibold text-base">Google</Text>
+          </>
+        )}
+      </Pressable>
     </View>
   );
 }

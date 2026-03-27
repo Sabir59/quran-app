@@ -53,6 +53,7 @@ function EmptyState({ isSearching }: { isSearching: boolean }) {
 export default function BookmarksScreen() {
   const { bookmarks, isLoading, removeBookmark } = useBookmarks();
   const [query, setQuery] = useState('');
+  const [deletingKey, setDeletingKey] = useState<string | null>(null);
 
   const flatListRef = useRef<FlatList>(null);
   useScrollToTop(flatListRef);
@@ -74,7 +75,15 @@ export default function BookmarksScreen() {
   }, []);
 
   const handleDelete = useCallback(
-    (b: Bookmark) => removeBookmark(b.surahNumber, b.ayahNumber),
+    async (b: Bookmark) => {
+      const key = `${b.surahNumber}-${b.ayahNumber}`;
+      setDeletingKey(key);
+      try {
+        await removeBookmark(b.surahNumber, b.ayahNumber);
+      } finally {
+        setDeletingKey(null);
+      }
+    },
     [removeBookmark],
   );
 
@@ -84,9 +93,10 @@ export default function BookmarksScreen() {
         bookmark={item}
         onPress={() => handleCardPress(item)}
         onDelete={() => handleDelete(item)}
+        isDeleting={deletingKey === `${item.surahNumber}-${item.ayahNumber}`}
       />
     ),
-    [handleCardPress, handleDelete],
+    [handleCardPress, handleDelete, deletingKey],
   );
 
   const keyExtractor = useCallback(

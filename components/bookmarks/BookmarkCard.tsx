@@ -1,18 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Bookmark } from '@/lib/bookmarks';
 
 interface BookmarkCardProps {
   bookmark: Bookmark;
   onPress: () => void;
   onDelete: () => void;
+  isDeleting?: boolean;
 }
 
 const TEAL = '#12C4BE';
 const TEAL_LIGHT = '#ECFAF9';
 const TEAL_BADGE_TEXT = '#0D9E99';
 
-export function BookmarkCard({ bookmark, onPress, onDelete }: BookmarkCardProps) {
+export function BookmarkCard({ bookmark, onPress, onDelete, isDeleting = false }: BookmarkCardProps) {
   return (
     <Pressable
       onPress={onPress}
@@ -40,8 +41,12 @@ export function BookmarkCard({ bookmark, onPress, onDelete }: BookmarkCardProps)
             accessibilityRole="button"
             accessibilityLabel="Remove bookmark"
             style={styles.deleteBtn}
+            disabled={isDeleting}
           >
-            <Ionicons name="trash-outline" size={17} color="#9CA3AF" />
+            {isDeleting
+              ? <ActivityIndicator size="small" color="#9CA3AF" />
+              : <Ionicons name="trash-outline" size={17} color="#9CA3AF" />
+            }
           </Pressable>
         </View>
 

@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { router } from 'expo-router';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useRegister } from '@/hooks/api/useRegister';
-import { registerSchema } from '@/schemas/auth.schemas';
-import type { RegisterFormValues } from '@/schemas/auth.schemas';
+import { useRegister } from "@/hooks/api/useRegister";
+import type { RegisterFormValues } from "@/schemas/auth.schemas";
+import { registerSchema } from "@/schemas/auth.schemas";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { router } from "expo-router";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 
 export function useRegisterForm() {
   const registerMutation = useRegister();
@@ -14,21 +14,30 @@ export function useRegisterForm() {
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '' },
-    mode: 'onTouched',
+    defaultValues: {
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+    mode: "onTouched",
   });
 
   const handleSubmit = form.handleSubmit(async (values) => {
     setServerError(null);
     try {
-      const { email } = await registerMutation.mutateAsync({
+      await registerMutation.mutateAsync({
         name: values.fullName.trim(),
         email: values.email.trim().toLowerCase(),
         password: values.password,
       });
-      router.push({ pathname: '/(auth)/verify-email', params: { email } });
+      router.replace("/(main)/home");
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
+      setServerError(
+        err instanceof Error
+          ? err.message
+          : "Registration failed. Please try again.",
+      );
     }
   });
 

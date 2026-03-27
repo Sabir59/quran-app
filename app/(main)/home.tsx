@@ -32,6 +32,8 @@ import type { JuzEntry } from '@/constants/juz';
 import { useSurahList } from '@/hooks/api/quran';
 import { useFrequentlyRead } from '@/hooks/useFrequentlyRead';
 import { useHomeSearch } from '@/hooks/useHomeSearch';
+import { useUserProfile } from '@/context/UserProfileContext';
+import { useAuth } from '@/context/AuthContext';
 
 // ─── List item union type ────────────────────────────────────────────────────
 type SurahItem = { type: 'surah'; data: SurahSummary };
@@ -125,6 +127,12 @@ export default function HomeScreen() {
   const isDark = colorScheme === 'dark';
   const headerBg = isDark ? '#0a0a0f' : HOME_COLORS.teal;
 
+  const { isGuest } = useAuth();
+  const { name, photoURL } = useUserProfile();
+  const avatarInitials = isGuest
+    ? '?'
+    : (name || 'U').split(' ').slice(0, 2).map((w: string) => w[0]?.toUpperCase() ?? '').join('');
+
   const { data: surahs, isLoading, isError, refetch } = useSurahList();
   const { query, setQuery, results, isSearching } = useHomeSearch(surahs);
   const { frequentSurahs, trackRead } = useFrequentlyRead(surahs ?? []);
@@ -214,7 +222,11 @@ export default function HomeScreen() {
         <SafeAreaView style={styles.safeTop} edges={['top', 'left', 'right']}>
 
           {/* ── Fixed teal header ──────────────────────────────────── */}
-          <HomeHero />
+          <HomeHero
+            userInitials={avatarInitials}
+            photoURL={photoURL}
+            onAvatarPress={() => router.push('/(main)/profile')}
+          />
           <SearchBar
             value={query}
             onChangeText={setQuery}
